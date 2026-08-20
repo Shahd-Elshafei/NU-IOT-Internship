@@ -1,6 +1,5 @@
 # Day 2 - Interrupts, Debouncing, Ultrasonic Sensor & Data Logging
 
-
 ## Tasks Completed
 
 ### Task 1: Interrupt-Driven Button with Debouncing
@@ -35,13 +34,13 @@
 
 ## Key Learnings
 
-- **Interrupt Handling:** Understanding how hardware interrupts improve efficiency by eliminating CPU polling
-- **Debouncing:** Practical implementation of software debouncing to filter mechanical switch noise
-- **Edge Detection:** Configuring GPIO pins for falling edge detection
-- **Ultrasonic Sensing:** Understanding sound wave propagation for distance measurement
-- **Data Persistence:** Using SQLite for reliable data storage in embedded systems
-- **Data Visualization:** Creating professional plots for data analysis using matplotlib
-- **Python Integration:** Combining hardware control with data processing and visualization
+- Interrupt Handling: Understanding how hardware interrupts improve efficiency by eliminating CPU polling
+- Debouncing: Practical implementation of software debouncing to filter mechanical switch noise
+- Edge Detection: Configuring GPIO pins for falling edge detection
+- Ultrasonic Sensing: Understanding sound wave propagation for distance measurement
+- Data Persistence: Using SQLite for reliable data storage in embedded systems
+- Data Visualization: Creating professional plots for data analysis using matplotlib
+- Python Integration: Combining hardware control with data processing and visualization
 
 ---
 
@@ -68,6 +67,50 @@
 
 ## Commands Used
 
-**Compilation (C):**
+Compilation (C):
 ```bash
 gcc -o button_interrupt button_interrupt.c -lgpiod
+```
+
+Execution:
+```bash
+sudo ./button_interrupt
+python3 ultrasonic_sensor.py
+python3 visualize_data.py
+```
+
+Database Inspection:
+```bash
+sqlite3 sensor_data.db
+.tables
+SELECT * FROM distance_logs;
+```
+
+Package Installation:
+```bash
+pip install gpiozero matplotlib pandas
+```
+
+---
+
+## Challenges & Solutions
+
+| Challenge | Solution |
+|-----------|----------|
+| Button bouncing causing multiple toggles | Implemented 200ms software debounce with timestamp comparison |
+| Ultrasonic sensor inaccurate readings | Used gpiozero's built-in averaging and error handling |
+| Database connection overhead | Open connection once, commit after each insert, close on exit |
+| Visualization data formatting | Convert strings to datetime objects using pandas |
+| Permission errors with GPIO | Run with sudo or add user to gpio group |
+| Interrupts not triggering | Verified correct pin configuration and edge detection settings |
+
+---
+
+## Real-World Applications
+
+- Proximity Sensors: Security systems, automatic doors
+- Level Monitoring: Water tanks, silos, liquid storage
+- Robotics: Obstacle avoidance, navigation
+- Parking Sensors: Automotive applications
+- Industrial Automation: Process monitoring, quality control
+- Smart Home: Occupancy detection, automation triggers
