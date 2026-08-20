@@ -1,7 +1,5 @@
 # Day 1 - Emirp Number Finder & GPIO LED Control
 
-**Date:** [Insert Date]  
-**Intern:** [Your Name]
 
 ---
 
