@@ -1,0 +1,30 @@
+[Unit]
+Description=Task 9 IPC System - HiveMQ + InfluxDB
+After=network.target
+
+[Service]
+Type=simple
+
+User=Intern
+
+WorkingDirectory=/home/Intern/tasks
+
+ExecStart=/usr/bin/python3 /home/Intern/tasks/main.py
+
+Restart=always
+RestartSec=5
+
+# MQTT Configuration
+Environment=MQTT_HOST=xxxxxxxxx.s1.eu.hivemq.cloud
+Environment=MQTT_PORT=8883
+Environment=MQTT_USERNAME=your_hivemq_username
+Environment=MQTT_PASSWORD=your_hivemq_password
+
+# InfluxDB Configuration
+Environment=INFLUX_URL=https://us-central1-1.gcp.cloud2.influxdata.com
+Environment=INFLUX_TOKEN=your_influxdb_token
+Environment=INFLUX_ORG=your_influxdb_org_id
+Environment=INFLUX_BUCKET=your_influxdb_bucket_name
+
+[Install]
+WantedBy=multi-user.target

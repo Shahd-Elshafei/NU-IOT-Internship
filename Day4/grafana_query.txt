@@ -1,0 +1,6 @@
+// Query to visualize distance data in Grafana
+
+from(bucket: "your_bucket_name")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "distance")
+  |> filter(fn: (r) => r._field == "value")

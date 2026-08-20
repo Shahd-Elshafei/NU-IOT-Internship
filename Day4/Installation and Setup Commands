@@ -1,0 +1,24 @@
+# Make setup script executable
+chmod +x setup.sh
+
+# Run setup
+./setup.sh
+
+# Or manually install packages
+pip install paho-mqtt influxdb-client gpiozero
+
+# Set environment variables
+source .env
+
+# Run the system
+python3 main.py
+
+# Install systemd service
+sudo cp task9.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable task9.service
+sudo systemctl start task9.service
+sudo systemctl status task9.service
+
+# View logs
+sudo journalctl -u task9.service -f
