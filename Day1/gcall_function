@@ -1,0 +1,13 @@
+gcall() {
+    local output_file="$1"
+    local source_file="$2"
+    local flags=""
+
+    # Scan the C file for specific headers and append their matching libraries
+    grep -q '#include <gpiod.h>' "$source_file" && flags="$flags $(pkg-config --libs libgpiod 2>/dev/null || echo '-lgpiod')"
+    grep -q '#include <math.h>' "$source_file" && flags="$flags -lm"
+    grep -q '#include <pthread.h>' "$source_file" && flags="$flags -lpthread"
+
+    # Compile with all discovered flags automatically injected
+    gcc -o "$output_file" "$source_file" $flags
+}
