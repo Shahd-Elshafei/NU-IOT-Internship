@@ -1,0 +1,30 @@
+# Install required Python packages
+pip install requests paho-mqtt gpiozero
+
+# Set environment variables (temporary)
+export IO_USERNAME="your_username"
+export IO_KEY="your_adafruit_key"
+
+# Make permanent by adding to ~/.bashrc
+echo 'export IO_USERNAME="your_username"' >> ~/.bashrc
+echo 'export IO_KEY="your_adafruit_key"' >> ~/.bashrc
+source ~/.bashrc
+
+# Run HTTP version
+python3 http_adafruit.py
+
+# Run MQTT version
+python3 mqtt_adafruit.py
+
+# Run IPC version
+python3 main.py
+
+# Install systemd service
+sudo cp task9.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable task9.service
+sudo systemctl start task9.service
+sudo systemctl status task9.service
+
+# View logs
+sudo journalctl -u task9.service -f

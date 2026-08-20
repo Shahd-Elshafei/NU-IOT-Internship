@@ -1,0 +1,21 @@
+[Unit]
+Description=Task 9 IPC System
+After=network.target
+
+[Service]
+Type=simple
+
+User=Intern
+
+WorkingDirectory=/home/Intern/tasks
+
+ExecStart=/usr/bin/python3 /home/Intern/tasks/main.py
+
+Restart=always
+RestartSec=5
+
+Environment=IO_USERNAME=YOUR_USERNAME
+Environment=IO_KEY=YOUR_ADAFRUIT_KEY
+
+[Install]
+WantedBy=multi-user.target
