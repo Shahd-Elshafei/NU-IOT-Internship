@@ -1,9 +1,5 @@
 # Day 2 - Interrupts, Debouncing, Ultrasonic Sensor & Data Logging
 
-**Date:** [Insert Date]  
-**Intern:** [Your Name]
-
----
 
 ## Tasks Completed
 
