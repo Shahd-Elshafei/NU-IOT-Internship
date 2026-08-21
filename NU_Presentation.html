@@ -1,0 +1,7875 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Utilizing ML/AI for Efficient Partitioning of RTL in Parallel Simulation</title>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --bg2: #0f1521;
+      --panel: #141c2b;
+      --panel2: #1a2435;
+      --ink: #e8edf5;
+      --muted: #9aa7bd;
+      --faint: #64748b;
+      --teal: #00cfc1;
+      --teal-d: #009999;
+      --coral: #ff6b4a;
+      --amber: #f5b942;
+      --violet: #9b8cff;
+      --blue: #4aa3ff;
+      --green: #37d399;
+      --red: #ff5d6c;
+      --line: rgba(255, 255, 255, .09);
+      --line2: rgba(255, 255, 255, .16);
+      --shadow: 0 30px 80px rgba(0, 0, 0, .5);
+      --bg-grad1: #16263a;
+      --bg-grad2: #1a1330;
+      --code-bg: rgba(255, 255, 255, .07);
+      --track-bg: rgba(255, 255, 255, .05);
+      --row-hover: rgba(255, 255, 255, .025);
+      --dot-bg: rgba(255, 255, 255, .16);
+      --ghost: rgba(255, 255, 255, .07);
+    }
+
+    /* ---------- light theme (eye-friendly) ---------- */
+    body.light {
+      --bg: #f3f5fa;
+      --bg2: #eaeef6;
+      --panel: #ffffff;
+      --panel2: #f5f7fb;
+      --ink: #1d2733;
+      --muted: #566173;
+      --faint: #8895a8;
+      --teal: #0a9d92;
+      --teal-d: #0b8a80;
+      --coral: #dd4b2a;
+      --amber: #c2871a;
+      --violet: #6a5cf0;
+      --blue: #2b7fe0;
+      --green: #1f9e6c;
+      --red: #d8384a;
+      --line: rgba(20, 30, 50, .10);
+      --line2: rgba(20, 30, 50, .18);
+      --shadow: 0 30px 80px rgba(30, 45, 80, .14);
+      --bg-grad1: #dfeaf6;
+      --bg-grad2: #e9e3fb;
+      --code-bg: rgba(20, 30, 50, .06);
+      --track-bg: rgba(20, 30, 50, .07);
+      --row-hover: rgba(20, 30, 50, .03);
+      --dot-bg: rgba(20, 30, 50, .18);
+      --ghost: rgba(20, 30, 50, .07);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      background: radial-gradient(1200px 800px at 80% -10%, var(--bg-grad1) 0%, transparent 60%),
+        radial-gradient(1000px 700px at -10% 110%, var(--bg-grad2) 0%, transparent 55%),
+        var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background .4s ease, color .4s ease;
+    }
+
+    /* ---------- Circuits/Electronics ---------- */
+
+
+    .led {
+
+      fill: #222;
+
+      transition: .5s;
+
+    }
+
+    .on .led {
+
+      fill: #ffe44a;
+
+      filter: drop-shadow(0 0 20px #ffd400);
+    }
+
+    .electron {
+
+      offset-path: path("M40 40 L120 40 ...");
+
+      animation: flow 2s linear infinite;
+
+    }
+
+    /*========================    RTOS    =========================*/
+
+    .rtos-loop {
+      position: relative;
+      width: 430px;
+      height: 430px;
+      margin: auto;
+    }
+
+    .scheduler-ring {
+
+      fill: none;
+      stroke: rgba(0, 220, 255, .15);
+      stroke-width: 5;
+      stroke-dasharray: 8 8;
+
+    }
+
+    .kernel {
+
+      position: absolute;
+      left: 155px;
+      top: 155px;
+      transform: translate(-50%, -50%);
+      width: 135px;
+      height: 135px;
+
+      border-radius: 50%;
+
+      background: #18242f;
+
+      border: 2px solid var(--teal);
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: center;
+
+      align-items: center;
+
+      box-shadow: 0 0 35px rgba(0, 220, 255, .35);
+
+    }
+
+    .kernel i {
+
+      font-size: 42px;
+      color: var(--teal);
+
+      margin-bottom: 10px;
+
+    }
+
+    .kernel h3 {
+
+      font-size: 20px;
+      text-align: center;
+
+    }
+
+    .task-node {
+
+      position: absolute;
+
+      width: 95px;
+      height: 95px;
+
+      border-radius: 50%;
+
+      background: #1d2430;
+
+      border: 2px solid rgba(255, 255, 255, .15);
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: center;
+
+      align-items: center;
+
+      transition: .4s;
+
+    }
+
+    .task-node i {
+
+      font-size: 34px;
+
+      color: var(--teal);
+
+      margin-bottom: 8px;
+
+    }
+
+    .task-node span {
+
+      font-size: 13px;
+
+    }
+
+    .top {
+      left: 167px;
+      top: 0;
+    }
+
+    .right {
+      right: 0;
+      top: 167px;
+    }
+
+    .bottom {
+      left: 167px;
+      bottom: 0;
+    }
+
+    .left {
+      left: 0;
+      top: 167px;
+    }
+
+    .scheduler-comet {
+
+      fill: none;
+
+      stroke: var(--teal);
+
+      stroke-width: 7;
+
+      stroke-dasharray: 1 910;
+
+      stroke-linecap: round;
+
+      animation: schedulerRotate 6s linear infinite;
+
+    }
+
+    @keyframes schedulerRotate {
+
+      to {
+
+        stroke-dashoffset: -910;
+
+      }
+
+    }
+
+    .task-link {
+
+      stroke: rgba(0, 220, 255, .2);
+
+      stroke-width: 2;
+
+    }
+
+
+    /* ---------- IoT ---------- */
+
+
+    .iot-cloud {
+
+      fill: #13293d;
+
+      stroke: var(--teal);
+
+      stroke-width: 2.5;
+
+      filter: drop-shadow(0 0 12px rgba(0, 255, 255, .45));
+
+    }
+
+    .cloud-label {
+
+      fill: white;
+
+      font-size: 18px;
+
+      font-weight: 700;
+
+      text-anchor: middle;
+
+      dominant-baseline: middle;
+
+    }
+
+
+
+    .proto-stage {
+      width: 100%;
+      height: 170px;
+      margin: .7rem 0;
+      overflow: visible;
+    }
+
+    .proto-node {
+      fill: #162330;
+      stroke: var(--teal);
+      stroke-width: 2;
+    }
+
+    .proto-cloud {
+      fill: #162330;
+      stroke: var(--teal);
+      stroke-width: 2;
+    }
+
+    .proto-line {
+      stroke: #4bc9d8;
+      stroke-width: 2;
+      stroke-dasharray: 6 6;
+      opacity: .7;
+    }
+
+    .http-msg,
+    .mqtt-msg {
+      fill: #4bc9ff;
+      offset-distance: 0%;
+    }
+
+    .http-msg {
+      animation: httpMove 1.2s linear infinite;
+    }
+
+    .h2 {
+      animation-delay: .4s;
+    }
+
+    .h3 {
+      animation-delay: .8s;
+    }
+
+    .mqtt-msg {
+      fill: #41ff8f;
+      animation: mqttMove 5s linear infinite;
+    }
+
+    .http-msg {
+      offset-path: path("M96,85 L194,85");
+    }
+
+    .mqtt-msg {
+      offset-path: path("M96,85 L194,85");
+    }
+
+    @keyframes httpMove {
+
+      0% {
+        opacity: 0;
+        offset-distance: 0%;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        offset-distance: 100%;
+      }
+
+    }
+
+    @keyframes mqttMove {
+
+      0%,
+      70% {
+        opacity: 0;
+        offset-distance: 0%;
+      }
+
+      75% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        offset-distance: 100%;
+      }
+
+    }
+
+
+
+
+    /*=========================================================
+                    Method Icons
+=========================================================*/
+
+    .method-icon {
+
+      display: flex;
+
+      justify-content: center;
+
+      align-items: center;
+
+      margin: 1rem auto 1.2rem;
+
+      width: 110px;
+
+      height: 110px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(circle,
+          rgba(0, 255, 255, .18),
+          rgba(0, 255, 255, .05));
+
+      border: 2px solid rgba(0, 255, 255, .18);
+
+      box-shadow:
+        0 0 18px rgba(0, 255, 255, .15),
+        inset 0 0 15px rgba(255, 255, 255, .05);
+
+      transition: .35s;
+
+    }
+
+    .method-icon i {
+
+      font-size: 3.2rem;
+
+      color: var(--teal);
+
+    }
+
+    .method-card:hover .method-icon {
+
+      transform: scale(1.08);
+
+      box-shadow:
+        0 0 28px rgba(0, 255, 255, .35),
+        0 0 50px rgba(0, 255, 255, .18);
+
+    }
+
+    /*=========================================================
+        Raspberry Pi Methodology Tree
+=========================================================*/
+
+    .method-tree {
+
+      position: relative;
+
+      margin-top: 2rem;
+
+      height: 720px;
+
+      display: flex;
+
+      flex-direction: column;
+
+      align-items: center;
+
+      justify-content: flex-start;
+
+    }
+
+
+    /*================ ROOT =================*/
+
+    .method-root {
+
+      position: relative;
+
+      z-index: 5;
+
+      animation: rootEnter .8s cubic-bezier(.18, .89, .32, 1.28);
+
+    }
+
+    .root-card {
+
+      width: 300px;
+
+      background: rgba(255, 255, 255, .05);
+
+      border: 1px solid rgba(255, 255, 255, .12);
+
+      border-radius: 20px;
+
+      padding: 18px;
+
+      backdrop-filter: blur(14px);
+
+      box-shadow:
+
+        0 20px 60px rgba(0, 0, 0, .35),
+
+        0 0 25px rgba(18, 200, 255, .18);
+
+      transition: .5s;
+
+    }
+
+    .root-card img {
+
+      width: 100%;
+
+      border-radius: 12px;
+
+      display: block;
+
+    }
+
+    .root-card h3 {
+
+      text-align: center;
+
+      margin-top: 12px;
+
+      font-size: 1.05rem;
+
+      color: var(--teal);
+
+    }
+
+
+    /*================ TREE =================*/
+
+    .tree-svg {
+
+      position: absolute;
+
+      left: 0;
+
+      top: 0;
+
+      width: 100%;
+
+      height: 100%;
+
+      pointer-events: none;
+
+      overflow: visible;
+
+    }
+
+
+    /*================ BRANCHES =================*/
+
+    .branch {
+
+      fill: none;
+
+      stroke: rgba(0, 255, 255, .25);
+
+      stroke-width: 4;
+
+      stroke-linecap: round;
+
+      stroke-dasharray: 900;
+
+      stroke-dashoffset: 900;
+
+      animation: growBranch .9s forwards;
+
+    }
+
+
+    /*================ PULSE =================*/
+
+    #pulse {
+
+      fill: var(--teal);
+
+      filter:
+
+        drop-shadow(0 0 6px cyan) drop-shadow(0 0 18px cyan);
+
+      opacity: 0;
+
+    }
+
+
+    /*================ METHODS =================*/
+
+    .method-row {
+
+      position: absolute;
+
+      bottom: 20px;
+
+      width: 100%;
+
+      display: flex;
+
+      justify-content: space-around;
+
+      align-items: flex-start;
+
+      z-index: 5;
+
+    }
+
+
+    .method-card {
+
+      width: 290px;
+
+      padding: 15px;
+
+      border-radius: 18px;
+
+      background: rgba(255, 255, 255, .05);
+
+      border: 1px solid rgba(255, 255, 255, .10);
+
+      backdrop-filter: blur(12px);
+
+      box-shadow:
+
+        0 12px 40px rgba(0, 0, 0, .25);
+
+      transition:
+
+        transform .7s,
+
+        opacity .6s,
+
+        box-shadow .7s;
+
+      transform-origin: center;
+
+      overflow: hidden;
+
+    }
+
+
+    .method-card:hover {
+
+      transform: translateY(-6px);
+
+    }
+
+
+    .method-title {
+
+      font-size: 1.15rem;
+
+      font-weight: 700;
+
+      text-align: center;
+
+      color: var(--teal);
+
+      margin-bottom: 12px;
+
+    }
+
+
+    .method-card video {
+
+      width: 100%;
+
+      border-radius: 12px;
+
+      display: block;
+
+      background: #111;
+
+      border: 2px solid rgba(255, 255, 255, .08);
+
+    }
+
+
+    .method-desc {
+
+      margin-top: 12px;
+
+      font-size: .92rem;
+
+      line-height: 1.5;
+
+      color: var(--muted);
+
+    }
+
+    /*=========================================================
+            Large Demonstration Video
+=========================================================*/
+
+    .demo-video {
+
+      margin: 2rem auto;
+
+      width: min(1050px, 90%);
+
+      display: flex;
+
+      justify-content: center;
+
+      align-items: center;
+
+    }
+
+    .demo-video video {
+
+      width: 100%;
+
+      max-height: 58vh;
+
+      border-radius: 20px;
+
+      background: #000;
+
+      border: 2px solid rgba(255, 255, 255, .08);
+
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, .45),
+        0 0 35px rgba(0, 255, 255, .18);
+
+      transition: .4s;
+
+    }
+
+    .demo-video video:hover {
+
+      transform: scale(1.01);
+
+      box-shadow:
+        0 30px 70px rgba(0, 0, 0, .55),
+        0 0 40px rgba(0, 255, 255, .30);
+
+    }
+
+
+
+    /*================ ACTIVE CARD =================*/
+
+    .method-card.active {
+
+      transform:
+
+        translateY(-130px) scale(1.65);
+
+      z-index: 40;
+
+      box-shadow:
+
+        0 25px 80px rgba(0, 0, 0, .55),
+
+        0 0 35px rgba(0, 255, 255, .30);
+
+    }
+
+
+    /*================ DIMMED =================*/
+
+    .method-card.dim {
+
+      opacity: .15;
+
+      transform: scale(.92);
+
+    }
+
+
+    /*================ ROOT ACTIVE =================*/
+
+    .root-card.active {
+
+      transform: scale(1.25);
+
+      box-shadow:
+
+        0 0 35px rgba(0, 255, 255, .35),
+
+        0 25px 80px rgba(0, 0, 0, .45);
+
+    }
+
+
+    /*================ GLOW =================*/
+
+    .method-card::before {
+
+      content: "";
+
+      position: absolute;
+
+      left: -120%;
+
+      top: 0;
+
+      width: 70%;
+
+      height: 100%;
+
+      background:
+
+        linear-gradient(90deg,
+
+          transparent,
+
+          rgba(255, 255, 255, .18),
+
+          transparent);
+
+      transition: 1.2s;
+
+    }
+
+
+    .method-card.active::before {
+
+      left: 170%;
+
+    }
+
+
+    /*================ ROOT POP =================*/
+
+    @keyframes rootEnter {
+
+      0% {
+
+        opacity: 0;
+
+        transform: scale(.2);
+
+      }
+
+      70% {
+
+        transform: scale(1.12);
+
+      }
+
+      100% {
+
+        opacity: 1;
+
+        transform: scale(1);
+
+      }
+
+    }
+
+
+    /*================ BRANCH GROW =================*/
+
+    @keyframes growBranch {
+
+      to {
+
+        stroke-dashoffset: 0;
+
+      }
+
+    }
+
+
+    /*================ PULSE =================*/
+
+    @keyframes pulseGlow {
+
+      0% {
+
+        transform: scale(.6);
+
+        opacity: 0;
+
+      }
+
+      20% {
+
+        opacity: 1;
+
+      }
+
+      80% {
+
+        opacity: 1;
+
+      }
+
+      100% {
+
+        transform: scale(1.2);
+
+        opacity: 0;
+
+      }
+
+    }
+
+
+    /*================ VIDEO =================*/
+
+    .method-card video {
+
+      transition: .5s;
+
+    }
+
+    .method-card.active video {
+
+      box-shadow:
+
+        0 0 18px rgba(0, 255, 255, .25);
+
+    }
+
+
+    /*================ SMALL FLOAT =================*/
+
+    @keyframes floatCard {
+
+      0% {
+
+        transform: translateY(0);
+
+      }
+
+      50% {
+
+        transform: translateY(-5px);
+
+      }
+
+      100% {
+
+        transform: translateY(0);
+
+      }
+
+    }
+
+    .method-card:not(.active) {
+
+      animation: floatCard 5s ease-in-out infinite;
+
+    }
+
+
+    /* ---------- Camera / Cards ---------- */
+
+    .method-card {
+
+      transition:
+        transform .7s,
+        opacity .5s;
+
+    }
+
+    .method-card.focus {
+
+      transform: scale(2.2);
+
+      z-index: 50;
+
+    }
+
+    .method-card.blur {
+
+      opacity: .15;
+
+      transform: scale(.8);
+
+    }
+
+
+
+    /* ---------- deck / slides ---------- */
+
+
+    .deck {
+      position: fixed;
+      inset: 0;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5.5vh 8vw 8vh;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(24px) scale(.99);
+      transition: opacity .5s ease, transform .5s ease, visibility .5s;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      z-index: 2;
+    }
+
+    .slide.prev {
+      transform: translateY(-24px) scale(.99);
+    }
+
+    .slide-inner {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    /* ---------- typography ---------- */
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .55em;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 1.1rem;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 26px;
+      height: 2px;
+      background: var(--teal);
+      border-radius: 2px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4.6vw, 4rem);
+      line-height: 1.04;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.6rem, 3.3vw, 2.7rem);
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: .4rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+
+    p.lead {
+      font-size: clamp(1.02rem, 1.5vw, 1.3rem);
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 60ch;
+      margin-top: 1rem;
+    }
+
+    .accent {
+      color: var(--teal)
+    }
+
+    .coral {
+      color: var(--coral)
+    }
+
+    .amber {
+      color: var(--amber)
+    }
+
+    .violet {
+      color: var(--violet)
+    }
+
+    .green {
+      color: var(--green)
+    }
+
+    .red {
+      color: var(--red)
+    }
+
+    .blue {
+      color: var(--blue)
+    }
+
+    strong {
+      color: var(--ink);
+      font-weight: 700
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-top: .5rem
+    }
+
+    code {
+      font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+      font-size: .86em;
+      background: var(--code-bg);
+      padding: .1em .4em;
+      border-radius: 5px;
+      color: var(--teal)
+    }
+
+    /* ---------- bullets ---------- */
+    ul.b {
+      list-style: none;
+      margin-top: 1.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    ul.b li {
+      position: relative;
+      padding-left: 2rem;
+      font-size: 1.12rem;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    ul.b li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .5em;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 0 4px rgba(0, 207, 193, .14);
+    }
+
+    ul.b li span.t {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    /* ---------- cards / grid ---------- */
+    .grid {
+      display: grid;
+      gap: 1.1rem;
+      margin-top: 1.8rem;
+    }
+
+    .g2 {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .g3 {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .g4 {
+      grid-template-columns: repeat(4, 1fr)
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--bg2));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1.4rem 1.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card .ico {
+      font-size: 1.5rem;
+      margin-bottom: .7rem;
+      display: block
+    }
+
+    .card h3 {
+      margin-bottom: .45rem
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: .97rem;
+      line-height: 1.5
+    }
+
+    .card .big {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1
+    }
+
+    .card.edge-teal {
+      border-top: 3px solid var(--teal)
+    }
+
+    .card.edge-coral {
+      border-top: 3px solid var(--coral)
+    }
+
+    .card.edge-violet {
+      border-top: 3px solid var(--violet)
+    }
+
+    .card.edge-amber {
+      border-top: 3px solid var(--amber)
+    }
+
+    .card.edge-blue {
+      border-top: 3px solid var(--blue)
+    }
+
+    .card.edge-green {
+      border-top: 3px solid var(--green)
+    }
+
+    /* ---------- takeaway / callout ---------- */
+    .takeaway {
+      margin-top: 1.9rem;
+      background: linear-gradient(90deg, rgba(0, 207, 193, .12), rgba(0, 207, 193, .02));
+      border: 1px solid rgba(0, 207, 193, .3);
+      border-left: 4px solid var(--teal);
+      border-radius: 12px;
+      padding: 1.1rem 1.3rem;
+      display: flex;
+      gap: .9rem;
+      align-items: flex-start;
+    }
+
+    .takeaway .lbl {
+      color: var(--teal);
+      font-weight: 800;
+      font-size: .78rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      padding-top: .15rem
+    }
+
+    .takeaway p {
+      font-size: 1.08rem;
+      line-height: 1.5;
+      color: var(--ink)
+    }
+
+    .warn {
+      background: linear-gradient(90deg, rgba(255, 107, 74, .12), rgba(255, 107, 74, .02));
+      border-color: rgba(255, 107, 74, .3);
+      border-left-color: var(--coral)
+    }
+
+    .warn .lbl {
+      color: var(--coral)
+    }
+
+    /* ---------- icon boxes (replace bullet lists) ---------- */
+    .iconrow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .85rem;
+      margin-top: .3rem
+    }
+
+    .ibox {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem .95rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .55rem;
+      transition: transform .2s, border-color .2s
+    }
+
+    .ibox:hover {
+      transform: translateY(-2px);
+      border-color: var(--line2)
+    }
+
+    .ibox .ic {
+      font-size: 1.9rem;
+      line-height: 1
+    }
+
+    .ibox .tx {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25
+    }
+
+    /* ---------- numbered goal cards ---------- */
+    .goals {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1.4rem
+    }
+
+    .goal {
+      position: relative;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--teal);
+      border-radius: 14px;
+      padding: 1.2rem 1rem 1.1rem;
+      transition: transform .25s, border-color .25s, box-shadow .25s
+    }
+
+    .goal:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .goal .gnum {
+      font: 800 2.4rem/1 Inter, sans-serif;
+      background: linear-gradient(120deg, var(--teal), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -.03em
+    }
+
+    .goal .gttl {
+      margin-top: .5rem;
+      font-size: 1.04rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2
+    }
+
+    .goal .gsub {
+      margin-top: .3rem;
+      font-size: .82rem;
+      color: var(--faint);
+      line-height: 1.35
+    }
+
+    .goal .gmin {
+      position: absolute;
+      top: .85rem;
+      right: .9rem;
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--coral);
+      opacity: .85
+    }
+
+    .goal .gmin.up {
+      color: var(--green)
+    }
+
+    .slide.active .goal.gstep.show {
+      animation: gnnStepIn .5s cubic-bezier(.22, 1, .36, 1) both
+    }
+
+    .slide.active .goal.gstep.show .gnum {
+      animation: pNodePop .6s cubic-bezier(.34, 1.56, .64, 1) both
+    }
+
+    /* ---------- flow diagram ---------- */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: .6rem;
+      margin-top: 1.9rem;
+      flex-wrap: wrap
+    }
+
+    .step {
+      flex: 1;
+      min-width: 120px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: .95rem .8rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .step .n {
+      font-size: .72rem;
+      color: var(--teal);
+      font-weight: 800;
+      letter-spacing: .1em
+    }
+
+    .step .s {
+      font-size: .96rem;
+      font-weight: 600;
+      margin-top: .3rem;
+      line-height: 1.25
+    }
+
+    .step .d {
+      font-size: .8rem;
+      color: var(--faint);
+      margin-top: .25rem;
+      line-height: 1.3
+    }
+
+    .arrow {
+      display: flex;
+      align-items: center;
+      color: var(--faint);
+      font-size: 1.2rem
+    }
+
+    /* ---------- two-col layout ---------- */
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.4rem;
+      align-items: center;
+      margin-top: 1.5rem
+    }
+
+    .cols.tight {
+      gap: 1.6rem
+    }
+
+    /* ---------- stat row ---------- */
+    .stats {
+      display: flex;
+      gap: 2.4rem;
+      margin-top: 2rem;
+      flex-wrap: wrap
+    }
+
+    .stat .v {
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1
+    }
+
+    .stat .k {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-top: .4rem;
+      max-width: 22ch
+    }
+
+    /* ---------- table ---------- */
+    table.tbl {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.6rem;
+      font-size: 1rem
+    }
+
+    table.tbl th {
+      text-align: left;
+      font-size: .74rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      padding: .7rem .8rem;
+      border-bottom: 1px solid var(--line2);
+    }
+
+    table.tbl td {
+      padding: .62rem .8rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink)
+    }
+
+    table.tbl td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: 'SF Mono', monospace;
+      font-size: .92rem
+    }
+
+    table.tbl tr:hover td {
+      background: var(--row-hover)
+    }
+
+    /* ---------- animated reward table (rows click-revealed) ---------- */
+    .rwd-tbl td {
+      vertical-align: middle
+    }
+
+    .rwd-tbl tbody tr.gstep {
+      opacity: 0
+    }
+
+    .rwd-tbl tbody tr.gstep.show {
+      animation: rwdRow .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .rwd-tbl tbody tr {
+      transition: transform .2s
+    }
+
+    .rwd-tbl tbody tr.show:hover {
+      transform: translateX(4px)
+    }
+
+    .wbar {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      justify-content: flex-end
+    }
+
+    .wbar .track {
+      position: relative;
+      flex: 1;
+      max-width: 130px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden
+    }
+
+    .wbar .wfill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--teal), var(--violet))
+    }
+
+    .rwd-tbl tbody tr.show .wbar .wfill {
+      animation: rwdFill 1s cubic-bezier(.22, 1, .36, 1) .25s forwards
+    }
+
+    .wbar .wval {
+      font-variant-numeric: tabular-nums;
+      font-family: 'SF Mono', monospace;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--ink);
+      min-width: 2.2em;
+      text-align: right
+    }
+
+    @keyframes rwdRow {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes rwdFill {
+      from {
+        width: 0
+      }
+
+      to {
+        width: var(--w)
+      }
+    }
+
+    .pill {
+      display: inline-block;
+      padding: .15em .6em;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums
+    }
+
+    .pill.up {
+      background: rgba(55, 211, 153, .16);
+      color: var(--green)
+    }
+
+    .pill.dn {
+      background: rgba(255, 93, 108, .16);
+      color: var(--red)
+    }
+
+    .pill.flat {
+      background: rgba(140, 150, 165, .16);
+      color: var(--muted)
+    }
+
+    /* ---------- auto-staggered reference table rows (animate on slide entry) ---------- */
+    .tbl.stagger tbody tr {
+      opacity: 0
+    }
+
+    .slide.active .tbl.stagger tbody tr {
+      animation: rwdRow .5s cubic-bezier(.22, 1, .36, 1) forwards;
+      animation-delay: calc(var(--i, 0)*55ms)
+    }
+
+    /* ---------- before -> after metric comparison cards ---------- */
+    .mcompare {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1.7rem
+    }
+
+    .mcard {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem .9rem;
+      text-align: center
+    }
+
+    .mcard .mk {
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .mcard .mrow {
+      margin-top: .55rem;
+      font-family: 'SF Mono', monospace;
+      font-size: 1.02rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .1em
+    }
+
+    .mcard .mb {
+      color: var(--faint)
+    }
+
+    .mcard .mar {
+      color: var(--faint);
+      font-size: .9em
+    }
+
+    .mcard .ma {
+      color: var(--green)
+    }
+
+    .mcard .ma.bad {
+      color: var(--red)
+    }
+
+    /* ---------- metric info panels ---------- */
+    .metpanels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .9rem;
+      margin-top: 1.3rem
+    }
+
+    .metp {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--teal);
+      border-radius: 12px;
+      padding: .95rem 1rem;
+      transition: transform .2s, box-shadow .2s
+    }
+
+    .metp:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, .26)
+    }
+
+    .metp .mt {
+      font-size: .98rem;
+      font-weight: 800;
+      color: var(--ink);
+      display: flex;
+      align-items: baseline;
+      gap: .5rem
+    }
+
+    .metp .mt .ar {
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase
+    }
+
+    .metp .mt .ar.up {
+      color: var(--green)
+    }
+
+    .metp .mt .ar.dn {
+      color: var(--coral)
+    }
+
+    .metp .md {
+      margin-top: .4rem;
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.42
+    }
+
+    .metp .md b {
+      color: var(--ink);
+      font-weight: 700
+    }
+
+    /* ---------- versus comparison (dense vs sparse) ---------- */
+    .vs {
+      display: grid;
+      grid-template-columns: 1fr 150px 1fr;
+      gap: .65rem 1.1rem;
+      margin-top: 1.6rem;
+      align-items: center
+    }
+
+    .vs-row {
+      display: contents
+    }
+
+    .vs-row.gstep>* {
+      opacity: 0
+    }
+
+    .vs-row.gstep.show>* {
+      animation: gnnStepIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .vs-head {
+      display: flex;
+      flex-direction: column;
+      gap: .15rem;
+      padding: .85rem 1.1rem;
+      border-radius: 14px;
+      font-weight: 800
+    }
+
+    .vs-head .vh-t {
+      font-size: 1.12rem
+    }
+
+    .vs-head .vh-s {
+      font-size: .76rem;
+      font-weight: 600;
+      opacity: .85
+    }
+
+    .vs-head.dense {
+      background: linear-gradient(135deg, rgba(255, 107, 74, .18), rgba(255, 107, 74, .04));
+      color: var(--coral);
+      border: 1px solid rgba(255, 107, 74, .3)
+    }
+
+    .vs-head.sparse {
+      background: linear-gradient(135deg, rgba(0, 207, 193, .18), rgba(0, 207, 193, .04));
+      color: var(--teal);
+      border: 1px solid rgba(0, 207, 193, .3);
+      text-align: right;
+      align-items: flex-end
+    }
+
+    .vs-prop {
+      text-align: center;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--faint)
+    }
+
+    .vs-cell {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .75rem .95rem;
+      border-radius: 11px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      font-family: 'SF Mono', monospace;
+      font-size: .95rem;
+      font-weight: 700
+    }
+
+    .vs-cell.dense {
+      color: var(--muted);
+      border-left: 3px solid var(--coral)
+    }
+
+    .vs-cell.sparse {
+      color: var(--teal);
+      border-left: 3px solid var(--teal);
+      justify-content: flex-start
+    }
+
+    .vs-cell .vchk {
+      color: var(--green);
+      font-weight: 800;
+      font-family: Inter, sans-serif
+    }
+
+    /* ---------- bars (CSS chart) ---------- */
+    .bars {
+      margin-top: 1.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: .85rem
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 56px;
+      align-items: center;
+      gap: 1rem
+    }
+
+    .bar-row .name {
+      font-size: .95rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .track {
+      height: 22px;
+      background: var(--track-bg);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 1s ease
+    }
+
+    .fill.g {
+      background: linear-gradient(90deg, var(--teal-d), var(--teal))
+    }
+
+    .fill.r {
+      background: linear-gradient(90deg, #a13b46, var(--red))
+    }
+
+    .bar-row .val {
+      font-family: 'SF Mono', monospace;
+      font-size: .9rem;
+      font-weight: 700;
+      text-align: right
+    }
+
+    /* ---------- animated bars (staggered reveal + grow + sheen + value pop) ---------- */
+    .bars.anim .bar-row {
+      opacity: 0
+    }
+
+    .slide.active .bars.anim .bar-row {
+      animation: barRowIn .55s cubic-bezier(.22, 1, .36, 1) forwards;
+      animation-delay: calc(var(--i, 0)*.13s)
+    }
+
+    .bars.anim .track {
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04)
+    }
+
+    .bars.anim .fill {
+      position: relative;
+      transition-delay: calc(var(--i, 0)*.13s);
+      overflow: hidden
+    }
+
+    .bars.anim .fill::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .35) 50%, transparent 80%);
+      background-size: 240% 100%
+    }
+
+    .slide.active .bars.anim .fill::after {
+      animation: barSheen 2.6s ease-in-out infinite;
+      animation-delay: calc(var(--i, 0)*.13s + .9s)
+    }
+
+    .bars.anim .bar-row .val {
+      opacity: 0
+    }
+
+    .slide.active .bars.anim .val {
+      animation: valPop .5s cubic-bezier(.34, 1.56, .64, 1) forwards;
+      animation-delay: calc(var(--i, 0)*.13s + .55s)
+    }
+
+    @keyframes barRowIn {
+      from {
+        opacity: 0;
+        transform: translateX(-14px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes barSheen {
+      0% {
+        background-position: 140% 0
+      }
+
+      55%,
+      100% {
+        background-position: -40% 0
+      }
+    }
+
+    @keyframes valPop {
+      0% {
+        opacity: 0;
+        transform: scale(.6)
+      }
+
+      70% {
+        transform: scale(1.12)
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    /* ---------- formula ---------- */
+    .formula {
+      margin-top: 1.4rem;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.1rem 1.4rem;
+      font-family: 'SF Mono', monospace;
+      font-size: 1.05rem;
+      color: var(--teal);
+      overflow-x: auto;
+    }
+
+    .formula .muted {
+      color: var(--faint)
+    }
+
+    /* ---------- title slide ---------- */
+    .title-slide {
+      justify-content: center;
+      text-align: left
+    }
+
+    .cover-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap
+    }
+
+    .badge-row {
+      display: flex;
+      gap: .7rem;
+      flex-wrap: wrap
+    }
+
+    .badge {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      padding: .4em .9em
+    }
+
+    .badge.fill {
+      background: rgba(0, 207, 193, .12);
+      border-color: rgba(0, 207, 193, .35);
+      color: var(--teal)
+    }
+
+    .authors {
+      margin-top: 2.4rem;
+      display: flex;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .95rem
+    }
+
+    .authors .col div {
+      margin-bottom: .25rem
+    }
+
+    .authors .col .h {
+      color: var(--faint);
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: .5rem
+    }
+
+    /* ---------- cover logos ---------- */
+    .logos {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 1.1rem;
+      flex-wrap: wrap
+    }
+
+    .logos .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: .2rem .4rem;
+      transition: transform .25s;
+    }
+
+    .logos .logo:hover {
+      transform: translateY(-3px)
+    }
+
+    .logos .logo img {
+      display: block;
+      width: auto;
+      object-fit: contain
+    }
+
+    .logos .logo.mark img {
+      height: 64px
+    }
+
+    .logos .logo.wordmark img {
+      height: 34px
+    }
+
+    .logos .sep {
+      width: 1px;
+      height: 42px;
+      background: var(--line2);
+      margin: 0 .2rem
+    }
+
+    /* ---------- section divider ---------- */
+    .divider {
+      justify-content: center
+    }
+
+    .divider .num {
+      font-size: 6rem;
+      font-weight: 800;
+      color: var(--ghost);
+      line-height: 1;
+      letter-spacing: -.04em
+    }
+
+    .divider h2 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      margin-top: -1.5rem
+    }
+
+    /* ---------- chips ---------- */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem;
+      margin-top: 1.4rem
+    }
+
+    .chip {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: .45em .8em;
+      font-size: .88rem;
+      color: var(--muted)
+    }
+
+    .chip b {
+      color: var(--ink)
+    }
+
+    /* ---------- progress / chrome ---------- */
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--violet));
+      z-index: 50;
+      transition: width .4s ease
+    }
+
+    .counter {
+      position: fixed;
+      bottom: 22px;
+      right: 28px;
+      font-size: .82rem;
+      color: var(--faint);
+      font-variant-numeric: tabular-nums;
+      z-index: 50;
+      letter-spacing: .05em;
+      display: flex;
+      align-items: center;
+      gap: .7em
+    }
+
+    .counter b {
+      color: var(--ink)
+    }
+
+    .pagecite {
+      font-size: .74rem;
+      color: var(--faint);
+      letter-spacing: .02em
+    }
+
+    .pagecite:not(:empty)::after {
+      content: "";
+      display: inline-block;
+      width: 1px;
+      height: .95em;
+      background: var(--line2);
+      margin-left: .7em;
+      vertical-align: -.12em
+    }
+
+    .pagecite b {
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .nav-hint {
+      position: fixed;
+      bottom: 22px;
+      left: 28px;
+      font-size: .78rem;
+      color: var(--faint);
+      z-index: 50
+    }
+
+    .nav-hint kbd {
+      background: var(--panel);
+      border: 1px solid var(--line2);
+      border-radius: 5px;
+      padding: .1em .45em;
+      font-family: inherit;
+      font-size: .85em;
+      color: var(--muted)
+    }
+
+    .brand {
+      position: fixed;
+      top: 20px;
+      left: 28px;
+      font-size: .78rem;
+      color: var(--faint);
+      z-index: 50;
+      letter-spacing: .08em;
+      font-weight: 600
+    }
+
+    .brand b {
+      color: var(--teal)
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 24px;
+      z-index: 60;
+      display: inline-flex;
+      align-items: center;
+      gap: .5em;
+      background: var(--panel);
+      color: var(--muted);
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      padding: .45em .9em;
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .3s, color .3s, border-color .3s, transform .15s;
+    }
+
+    .theme-toggle:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      transform: translateY(-1px)
+    }
+
+    .theme-toggle .ti {
+      font-size: 1rem;
+      line-height: 1
+    }
+
+    .dots {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 7px;
+      z-index: 50
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--dot-bg);
+      cursor: pointer;
+      transition: .3s
+    }
+
+    .dot.on {
+      background: var(--teal);
+      transform: scale(1.25)
+    }
+
+    .fnote {
+      margin-top: 1.4rem;
+      font-size: .82rem;
+      color: var(--faint);
+      line-height: 1.5
+    }
+
+    .twocol-list {
+      columns: 2;
+      column-gap: 2.4rem
+    }
+
+    /* ---------- figures / images ---------- */
+    .figs {
+      display: grid;
+      gap: 1.1rem;
+      margin-top: 1.3rem
+    }
+
+    .figs.f2 {
+      grid-template-columns: repeat(2, 1fr)
+    }
+
+    .figs.f3 {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    .fig {
+      background: linear-gradient(180deg, var(--panel), var(--bg2));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: .85rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+
+    .fig:hover {
+      border-color: var(--line2);
+      transform: translateY(-2px)
+    }
+
+    .fig .imgwrap {
+      background: #fdfdfd;
+      border-radius: 10px;
+      padding: .7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-height: 0;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .04);
+    }
+
+    .fig img {
+      width: 100%;
+      height: auto;
+      max-height: 54vh;
+      object-fit: contain;
+      display: block
+    }
+
+    .figs.f2 .fig img {
+      max-height: 38vh
+    }
+
+    .figs.f3 .fig img {
+      max-height: 30vh
+    }
+
+    .fig figcaption {
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.42;
+      margin-top: .6rem;
+      padding: 0 .25rem
+    }
+
+    .fig figcaption b {
+      color: var(--ink);
+      font-weight: 700
+    }
+
+    .fig .tag {
+      display: inline-block;
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: .3rem;
+    }
+
+    .fig .src {
+      color: var(--faint);
+      font-size: .72rem;
+      margin-top: .25rem;
+      font-style: italic
+    }
+
+    /* ---------- per-slide image citation ---------- */
+    .slide-cite {
+      position: absolute;
+      left: 50%;
+      bottom: 5.4vh;
+      transform: translateX(-50%);
+      max-width: 62%;
+      text-align: center;
+      font-size: .74rem;
+      line-height: 1.4;
+      color: var(--faint);
+    }
+
+    .slide-cite b {
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .slide-cite em {
+      font-style: italic
+    }
+
+    /* ---------- animated GNN pipeline (click to play, photo-matched colors) ---------- */
+    .gnn-box {
+      position: relative;
+      cursor: pointer
+    }
+
+    .gnn-hint {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      z-index: 2;
+      font: 600 .72rem Inter, sans-serif;
+      color: #6b7686;
+      background: #f1f3f6;
+      border: 1px solid #e0e4ea;
+      border-radius: 999px;
+      padding: .25em .7em;
+      display: inline-flex;
+      align-items: center;
+      gap: .35em;
+      transition: opacity .3s;
+    }
+
+    .gnn-box:hover .gnn-hint {
+      color: #3a4350;
+      border-color: #cfd4dc
+    }
+
+    .gnn-stage {
+      width: 100%;
+      display: block
+    }
+
+    .gnn-stage .lbl {
+      fill: #3a4350;
+      font: 700 15px Inter, sans-serif;
+      text-anchor: middle;
+      letter-spacing: .01em
+    }
+
+    .gnn-stage .sub {
+      fill: #9aa3b0;
+      font: 400 11px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    .gnn-stage .edge {
+      fill: none;
+      stroke: #8fb6d8;
+      stroke-width: 4;
+      stroke-linecap: round
+    }
+
+    .gnn-stage .edge2 {
+      fill: none;
+      stroke: #15606e;
+      stroke-width: 6;
+      stroke-linecap: round
+    }
+
+    .gnn-stage .node {
+      fill: #ffffff;
+      stroke-width: 4
+    }
+
+    .gnn-stage .blk {
+      fill: #ededed;
+      stroke: #cfcfcf;
+      stroke-width: 1.5
+    }
+
+    .gnn-stage .blkar {
+      fill: none;
+      stroke: #b3b3b3;
+      stroke-width: 2
+    }
+
+    .gnn-stage .net {
+      fill: none;
+      stroke: #bdbdbd;
+      stroke-width: 1.4
+    }
+
+    .gnn-stage .netnode {
+      fill: #8a94a2
+    }
+
+    .gnn-stage .ypred {
+      fill: #8a8f98;
+      font: 800 40px 'SF Mono', monospace;
+      text-anchor: middle
+    }
+
+    .gnn-stage .arr {
+      fill: none;
+      stroke: #b3b3b3;
+      stroke-width: 2.4;
+      stroke-dasharray: 5 7;
+      stroke-linecap: round
+    }
+
+    /* click-revealed fragments: each .gstep is hidden until it gets .show */
+    .gnn-stage .gstep {
+      opacity: 0
+    }
+
+    .gnn-stage .gstep.show {
+      animation: gnnStepIn .6s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .gnn-stage .gstep.show .flow {
+      animation: gnnFlow .9s linear infinite
+    }
+
+    .gnn-stage .gstep.show .blk {
+      animation: gnnPulse 1.8s ease-in-out infinite
+    }
+
+    .gnn-stage .gstep.show .glow {
+      animation: gnnGlow 2.2s ease-in-out infinite
+    }
+
+    .gnn-stage .gstep.show .ypred {
+      animation: gnnBeat 2s ease-in-out infinite
+    }
+
+    @keyframes gnnStepIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes gnnFade {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes gnnFlow {
+      to {
+        stroke-dashoffset: -24
+      }
+    }
+
+    @keyframes gnnPulse {
+
+      0%,
+      100% {
+        fill: #ededed
+      }
+
+      50% {
+        fill: #cfe9e4
+      }
+    }
+
+    @keyframes gnnGlow {
+
+      0%,
+      100% {
+        opacity: .8
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    @keyframes gnnBeat {
+
+      0%,
+      100% {
+        opacity: .7
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    /* ---------- GNN message-passing block (animated) ---------- */
+    .mp-stage {
+      width: 100%;
+      display: block
+    }
+
+    .mp-stage .mp-edge {
+      fill: none;
+      stroke: var(--line2);
+      stroke-width: 3;
+      stroke-linecap: round
+    }
+
+    .mp-stage .mp-nbr {
+      fill: var(--panel);
+      stroke: var(--blue);
+      stroke-width: 3
+    }
+
+    .mp-stage .mp-center {
+      fill: var(--panel);
+      stroke: var(--teal);
+      stroke-width: 4
+    }
+
+    .mp-stage .mp-lbl {
+      fill: var(--muted);
+      font: 700 13px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    .mp-stage .mp-tag {
+      fill: var(--faint);
+      font: 600 11px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    /* each .mpstep is hidden until revealed */
+    .mp-stage .mpstep {
+      opacity: 0
+    }
+
+    .mp-stage .mpstep.show {
+      animation: gnnStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    /* traveling message dots: only animate once their group is shown */
+    .mp-stage .mpstep.show .msg {
+      animation: mpTravel 1.7s ease-in-out infinite
+    }
+
+    .mp-stage .msg {
+      opacity: 0
+    }
+
+    .mp-stage .mpstep.show .mp-center {
+      animation: mpCenterPulse 1.7s ease-in-out infinite
+    }
+
+    .mp-stage .mpstep.show .mp-halo {
+      animation: mpHalo 1.7s ease-out infinite
+    }
+
+    .mp-stage .mp-halo {
+      fill: none;
+      stroke: var(--teal);
+      stroke-width: 2;
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center
+    }
+
+    @keyframes mpTravel {
+      0% {
+        opacity: 0;
+        offset-distance: 0%
+      }
+
+      12% {
+        opacity: 1
+      }
+
+      80% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0;
+        offset-distance: 100%
+      }
+    }
+
+    @keyframes mpCenterPulse {
+
+      0%,
+      55%,
+      100% {
+        stroke: var(--teal);
+        r: 26
+      }
+
+      70% {
+        stroke: var(--green);
+        r: 30
+      }
+    }
+
+    @keyframes mpHalo {
+      0% {
+        transform: scale(.7);
+        opacity: .55
+      }
+
+      70%,
+      100% {
+        transform: scale(1.9);
+        opacity: 0
+      }
+    }
+
+    /* ---------- GNN-variant flash cards ---------- */
+    .card-anim {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: .1rem 0
+    }
+
+    .card-anim .nd,
+    .card-anim .cc {
+      fill: var(--panel);
+      stroke-width: 3
+    }
+
+    .card-anim .ed {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      opacity: .8
+    }
+
+    .card-anim .halo {
+      fill: none;
+      stroke-width: 2;
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center
+    }
+
+    .card-anim .lab {
+      fill: var(--faint);
+      font: 700 12px 'SF Mono', monospace;
+      text-anchor: middle
+    }
+
+    .card-anim.gcn .ed,
+    .card-anim.gcn .nd,
+    .card-anim.gcn .cc,
+    .card-anim.gcn .halo {
+      stroke: var(--blue)
+    }
+
+    .card-anim.sage .ed,
+    .card-anim.sage .nd,
+    .card-anim.sage .cc,
+    .card-anim.sage .halo {
+      stroke: var(--teal)
+    }
+
+    .card-anim.gat .ed,
+    .card-anim.gat .nd,
+    .card-anim.gat .cc,
+    .card-anim.gat .halo {
+      stroke: var(--violet)
+    }
+
+    .slide.active .card-anim .flow {
+      stroke-dasharray: 5 7;
+      animation: flowDash .8s linear infinite
+    }
+
+    .slide.active .card-anim .halo {
+      animation: haloPulse 1.9s ease-out infinite
+    }
+
+    .slide.active .card-anim .samp {
+      animation: sampBlink 2.6s ease-in-out infinite
+    }
+
+    .slide.active .card-anim .att1 {
+      animation: attA 2.6s ease-in-out infinite
+    }
+
+    .slide.active .card-anim .att2 {
+      animation: attB 2.6s ease-in-out infinite
+    }
+
+    @keyframes flowDash {
+      to {
+        stroke-dashoffset: -24
+      }
+    }
+
+    @keyframes haloPulse {
+      0% {
+        transform: scale(.4);
+        opacity: .5
+      }
+
+      70%,
+      100% {
+        transform: scale(1.7);
+        opacity: 0
+      }
+    }
+
+    @keyframes sampBlink {
+
+      0%,
+      40% {
+        opacity: 1
+      }
+
+      58%,
+      92% {
+        opacity: .12
+      }
+
+      100% {
+        opacity: 1
+      }
+    }
+
+    @keyframes attA {
+
+      0%,
+      100% {
+        stroke-width: 2.5;
+        opacity: .4
+      }
+
+      50% {
+        stroke-width: 7;
+        opacity: 1
+      }
+    }
+
+    @keyframes attB {
+
+      0%,
+      100% {
+        stroke-width: 7;
+        opacity: 1
+      }
+
+      50% {
+        stroke-width: 2.5;
+        opacity: .4
+      }
+    }
+
+    .feat {
+      list-style: none;
+      margin-top: .8rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem
+    }
+
+    .feat li {
+      position: relative;
+      padding-left: 1.1rem;
+      font-size: .9rem;
+      line-height: 1.4;
+      color: var(--muted)
+    }
+
+    .feat li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .5em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--dot, var(--teal))
+    }
+
+    .feat li b {
+      color: var(--ink);
+      font-weight: 700
+    }
+
+    /* generic click-revealed fragments (cards, callouts) */
+    .gstep {
+      opacity: 0
+    }
+
+    .gstep.show {
+      animation: gnnStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .click-advance {
+      cursor: pointer
+    }
+
+    .step-hint {
+      display: inline-block;
+      margin-left: .7rem;
+      vertical-align: middle;
+      font: 600 .72rem Inter, sans-serif;
+      color: var(--faint);
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      padding: .2em .7em;
+      transition: opacity .35s;
+    }
+
+    /* ---------- animated GAP pipeline stepper ---------- */
+    .pipe {
+      margin-top: 2.4rem
+    }
+
+    .pipe-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr)
+    }
+
+    .pstage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 .35rem
+    }
+
+    .pconn {
+      position: absolute;
+      top: 31px;
+      left: calc(-50% + 35px);
+      width: calc(100% - 70px);
+      height: 4px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--teal), var(--violet));
+      transform: scaleX(0);
+      transform-origin: left center
+    }
+
+    .pstage:first-child .pconn {
+      display: none
+    }
+
+    .pnode {
+      position: relative;
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 32% 26%, var(--panel2), var(--bg2));
+      border: 2px solid var(--line2);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .28);
+      z-index: 2
+    }
+
+    .pnode .pnum {
+      font: 800 1.6rem Inter, sans-serif;
+      color: var(--muted);
+      line-height: 1;
+      transition: color .3s
+    }
+
+    .gstep.show .pnode .pnum {
+      color: var(--teal)
+    }
+
+    .ptitle {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-top: .75rem;
+      letter-spacing: -.01em
+    }
+
+    .pdesc {
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.35;
+      margin-top: .28rem;
+      max-width: 16ch
+    }
+
+    .gstep.show .pconn {
+      animation: pConnDraw .55s ease forwards
+    }
+
+    .gstep.show .pnode {
+      border-color: var(--teal);
+      animation: pNodePop .6s cubic-bezier(.34, 1.56, .64, 1), pNodeGlow 2.8s ease-in-out infinite .6s
+    }
+
+    @keyframes pConnDraw {
+      from {
+        transform: scaleX(0)
+      }
+
+      to {
+        transform: scaleX(1)
+      }
+    }
+
+    @keyframes pNodePop {
+      0% {
+        transform: scale(.5);
+        opacity: 0
+      }
+
+      60% {
+        transform: scale(1.13)
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    @keyframes pNodeGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .28), 0 0 0 0 rgba(0, 207, 193, 0)
+      }
+
+      50% {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .28), 0 0 26px 2px rgba(0, 207, 193, .42)
+      }
+    }
+
+    /* ---------- circular feedback loop ---------- */
+    .loop {
+      position: relative;
+      width: 360px;
+      height: 350px;
+      margin: .4rem auto 0
+    }
+
+    .loop-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible
+    }
+
+    .loop-bg .ring {
+      fill: none;
+      stroke: var(--line2);
+      stroke-width: 2
+    }
+
+    .loop-bg .arcseg {
+      fill: none;
+      stroke: var(--amber);
+      stroke-width: 2.5;
+      opacity: .4
+    }
+
+    .loop-bg .comet {
+      fill: none;
+      stroke: var(--amber);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 26 728;
+      filter: drop-shadow(0 0 6px var(--amber))
+    }
+
+    .slide.active .loop-bg .comet {
+      animation: cometRun 3s linear infinite
+    }
+
+    @keyframes cometRun {
+      to {
+        stroke-dashoffset: -754
+      }
+    }
+
+    .lcore {
+      position: absolute;
+      left: 180px;
+      top: 175px;
+      transform: translate(-50%, -50%);
+      width: 98px;
+      height: 98px;
+      border-radius: 50%;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: radial-gradient(circle at 32% 26%, var(--panel2), var(--bg2));
+      border: 2px solid var(--amber);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: .74rem;
+      line-height: 1.1
+    }
+
+    .lcore small {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: .6rem;
+      margin-top: .15rem
+    }
+
+    .slide.active .lcore {
+      animation: corePulse 2.6s ease-in-out infinite
+    }
+
+    @keyframes corePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 24px rgba(245, 185, 66, .28)
+      }
+
+      50% {
+        box-shadow: 0 0 42px 6px rgba(245, 185, 66, .5)
+      }
+    }
+
+    .lnode {
+      position: absolute;
+      width: 128px;
+      margin-left: -64px;
+      margin-top: -34px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center
+    }
+
+    .lnode .ldot {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 800 .9rem Inter, sans-serif;
+      color: #07131f;
+      background: linear-gradient(135deg, var(--amber), var(--coral));
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .32)
+    }
+
+    .lnode .ltext {
+      margin-top: .38rem;
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.22;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: .28em .5em
+    }
+
+    .gstep.show .lnode .ldot {
+      animation: pNodePop .6s cubic-bezier(.34, 1.56, .64, 1), pNodeGlow 2.8s ease-in-out infinite .6s
+    }
+
+    /* ---------- RLSF agent ↔ environment loop ---------- */
+    .rl {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      margin: .2rem auto 0
+    }
+
+    .rl svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible
+    }
+
+    .rl .rl-box {
+      fill: var(--panel2);
+      stroke-width: 2.5
+    }
+
+    .rl .rl-box.agent {
+      stroke: var(--violet)
+    }
+
+    .rl .rl-box.env {
+      stroke: var(--teal)
+    }
+
+    .rl .rl-t {
+      font: 800 16px Inter, sans-serif;
+      text-anchor: middle;
+      fill: var(--ink)
+    }
+
+    .rl .rl-s {
+      font: 600 11px Inter, sans-serif;
+      text-anchor: middle;
+      fill: var(--muted)
+    }
+
+    .rl .rl-path {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round
+    }
+
+    .rl .rl-path.act {
+      stroke: var(--amber)
+    }
+
+    .rl .rl-path.fb {
+      stroke: var(--teal)
+    }
+
+    .rl .rl-lab {
+      font: 700 11.5px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    .slide.active .rl .rl-box.agent {
+      animation: rlPulseV 2.6s ease-in-out infinite
+    }
+
+    .slide.active .rl .rl-box.env {
+      animation: rlPulseT 2.6s ease-in-out infinite 1.3s
+    }
+
+    .slide.active .rl .rl-flow {
+      stroke-dasharray: 8 10;
+      animation: rlFlow 1.1s linear infinite
+    }
+
+    .slide.active .rl .rl-flow.rev {
+      animation: rlFlowRev 1.1s linear infinite
+    }
+
+    .slide.active .rl .rl-spark {
+      animation: rlSpark 3.2s ease-in-out infinite
+    }
+
+    @keyframes rlFlow {
+      to {
+        stroke-dashoffset: -36
+      }
+    }
+
+    @keyframes rlFlowRev {
+      to {
+        stroke-dashoffset: 36
+      }
+    }
+
+    @keyframes rlPulseV {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(124, 108, 246, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 14px rgba(124, 108, 246, .55))
+      }
+    }
+
+    @keyframes rlPulseT {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(0, 207, 193, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 14px rgba(0, 207, 193, .5))
+      }
+    }
+
+    @keyframes rlSpark {
+
+      0%,
+      100% {
+        opacity: .25;
+        r: 4
+      }
+
+      50% {
+        opacity: 1;
+        r: 6
+      }
+    }
+
+    /* ---------- animated Gymnasium episode flow (every element click-revealed) ---------- */
+    /* each .step / .arrow / loop / card is its own .gstep: hidden until it gets .show */
+    .gym-flow .step.gstep.show {
+      animation: gymStepIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .gym-flow .arrow.gstep.show {
+      animation: gymStepIn .45s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .gym-flow .step {
+      overflow: hidden;
+      position: relative;
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .gym-flow .step.show::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      pointer-events: none;
+      background: linear-gradient(120deg, transparent 30%, rgba(124, 108, 246, .16) 50%, transparent 70%);
+      background-size: 220% 100%;
+      animation: gymSheen 3.4s ease-in-out infinite .5s
+    }
+
+    .gym-flow .step .n {
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem
+    }
+
+    .gym-flow .step .n .stepnum {
+      font: 800 2.4rem/1 Inter, sans-serif;
+      letter-spacing: -.03em;
+      background: linear-gradient(120deg, var(--teal), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      flex: none
+    }
+
+    .gym-flow .step.show .n .stepnum {
+      animation: pNodePop .6s cubic-bezier(.34, 1.56, .64, 1) both
+    }
+
+    .gym-flow .step.show .n .nlbl {
+      animation: gymDot 2.4s ease-in-out infinite
+    }
+
+    .gym-flow .step:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, .26)
+    }
+
+    .gym-flow .arrow {
+      font-weight: 800
+    }
+
+    .gym-flow .arrow.show .ar {
+      display: inline-block;
+      animation: gymArrow 1.6s ease-in-out infinite .5s
+    }
+
+    .gym-loop {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: .55rem;
+      margin-top: .8rem;
+      font: 700 .82rem Inter, sans-serif;
+      color: var(--violet)
+    }
+
+    .gym-loop.gstep.show {
+      animation: gymStepIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .gym-loop svg {
+      width: 64px;
+      height: 14px;
+      overflow: visible;
+      flex: none
+    }
+
+    .gym-loop .lp {
+      fill: none;
+      stroke: var(--violet);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 6 7
+    }
+
+    .gym-loop .lhead {
+      fill: none;
+      stroke: var(--violet);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .gym-loop.show .lp {
+      animation: gymFlowDash 1s linear infinite
+    }
+
+    @keyframes gymFlowDash {
+      to {
+        stroke-dashoffset: 13
+      }
+    }
+
+    .gym-cards .card.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .gym-cards .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .gym-cards .card.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    @keyframes gymStepIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(.96)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes gymSheen {
+      0% {
+        background-position: 140% 0
+      }
+
+      55%,
+      100% {
+        background-position: -140% 0
+      }
+    }
+
+    @keyframes gymDot {
+
+      0%,
+      100% {
+        color: var(--teal);
+        text-shadow: none
+      }
+
+      50% {
+        color: var(--violet);
+        text-shadow: 0 0 12px rgba(124, 108, 246, .7)
+      }
+    }
+
+    @keyframes gymArrow {
+
+      0%,
+      100% {
+        transform: translateX(0);
+        opacity: .55
+      }
+
+      50% {
+        transform: translateX(5px);
+        opacity: 1;
+        color: var(--violet)
+      }
+    }
+
+    /* ---------- PPO actor–critic slide (every element click-revealed) ---------- */
+    .ppo .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .ppo .card.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .ppo .card.edge-violet.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowV 2.8s ease-in-out infinite .55s
+    }
+
+    .ppo .card.edge-amber.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowA 2.8s ease-in-out infinite .55s
+    }
+
+    .ppo .formula.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoFormula 3s ease-in-out infinite .55s
+    }
+
+    .ppo .b li.gstep.show {
+      animation: ppoLiIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    @keyframes ppoLiIn {
+      from {
+        opacity: 0;
+        transform: translateX(-14px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes ppoGlowV {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(124, 108, 246, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(124, 108, 246, .35)
+      }
+    }
+
+    @keyframes ppoGlowA {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(245, 185, 66, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(245, 185, 66, .35)
+      }
+    }
+
+    @keyframes ppoFormula {
+
+      0%,
+      100% {
+        border-color: var(--line2)
+      }
+
+      50% {
+        border-color: var(--accent)
+      }
+    }
+
+    /* --- PPO narration rebuild: actor⇄critic loop + mechanism cards --- */
+    .ppo2 .ac-svg {
+      width: 100%;
+      max-width: 430px;
+      height: auto;
+      display: block;
+      margin: .2rem auto 0;
+      overflow: visible
+    }
+
+    .ppo2 .ac-box {
+      fill: var(--panel2);
+      stroke-width: 2.5
+    }
+
+    .ppo2 .ac-box.actor {
+      stroke: var(--violet)
+    }
+
+    .ppo2 .ac-box.critic {
+      stroke: var(--amber)
+    }
+
+    .ppo2 .ac-t {
+      font: 800 17px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    .ppo2 .ac-s {
+      font: 600 10.5px Inter, sans-serif;
+      text-anchor: middle;
+      fill: var(--muted)
+    }
+
+    .ppo2 .ac-path {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round
+    }
+
+    .ppo2 .ac-path.act {
+      stroke: var(--violet)
+    }
+
+    .ppo2 .ac-path.fb {
+      stroke: var(--amber)
+    }
+
+    .ppo2 .ac-lab {
+      font: 700 11px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    /* actor box only animates once its gstep is shown */
+    .ppo2 .ac-actor.show .ac-box.actor {
+      animation: rlPulseV 2.6s ease-in-out infinite
+    }
+
+    .ppo2 .ac-actor.show .actflow {
+      stroke-dasharray: 8 10;
+      animation: rlFlow 1.1s linear infinite
+    }
+
+    .ppo2 .ac-actor.show .spark-a {
+      animation: rlSpark 2.4s ease-in-out infinite
+    }
+
+    .ppo2 .ac-critic.show .ac-box.critic {
+      animation: rlPulseT 2.6s ease-in-out infinite
+    }
+
+    .ppo2 .ac-critic.show .fbflow {
+      stroke-dasharray: 8 10;
+      animation: rlFlowRev 1.1s linear infinite
+    }
+
+    .ppo2 .ac-critic.show .spark-c {
+      animation: rlSpark 2.4s ease-in-out infinite .6s
+    }
+
+    .ppo2 .ac-hidden {
+      opacity: 0
+    }
+
+    .ppo2 .ac-hidden.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    /* mechanism cards */
+    .ppo2 .mech {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .ppo2 .mech.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .ppo2 .mech.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .ppo2 .mech .mtag {
+      font: 800 .72rem Inter, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .ppo2 .formula.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoFormula 3s ease-in-out infinite .55s
+    }
+
+    .ppo2 .takeaway.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    /* clip-band mini animation inside the PPO card */
+    .ppo2 .clipfig {
+      width: 100%;
+      height: 26px;
+      display: block;
+      margin: .5rem 0 .1rem;
+      overflow: visible
+    }
+
+    .ppo2 .clipfig .band {
+      fill: rgba(0, 207, 193, .12);
+      stroke: var(--teal);
+      stroke-width: 1.2;
+      stroke-dasharray: 3 3
+    }
+
+    .ppo2 .clipfig .dot {
+      fill: var(--teal)
+    }
+
+    .ppo2 .mech.show .clipfig .dot {
+      animation: clipBob 2.4s ease-in-out infinite
+    }
+
+    @keyframes clipBob {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      50% {
+        transform: translateX(150px)
+      }
+    }
+
+    /* compact one-line summary pipeline */
+    .minipipe {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin-top: 1.9rem
+    }
+
+    .minipipe .mp {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(180deg, var(--panel), var(--bg2));
+      border: 1px solid var(--line);
+      border-bottom: 3px solid var(--mc, var(--teal));
+      border-radius: 11px;
+      padding: .5rem .95rem;
+      font-weight: 800;
+      font-size: .98rem;
+      color: var(--mc, var(--ink));
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .24)
+    }
+
+    .minipipe .mp small {
+      display: block;
+      font-weight: 600;
+      font-size: .68rem;
+      color: var(--muted);
+      margin-top: .12rem;
+      letter-spacing: .01em
+    }
+
+    .minipipe .mparr {
+      color: var(--faint);
+      font-size: 1.2rem;
+      font-weight: 800
+    }
+
+    .minipipe .mp.gstep.show {
+      animation: miniPop .5s cubic-bezier(.34, 1.56, .64, 1) forwards
+    }
+
+    .minipipe .mparr.gstep.show {
+      animation: miniFade .35s ease forwards
+    }
+
+    @keyframes miniPop {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(.9)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes miniFade {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    /* --- RLSF "why" slide: structure-only vs simulation-aware --- */
+    .whyrl .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .whyrl .card.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .whyrl .card.edge-coral.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .whyrl .card.edge-green.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowGreen 2.8s ease-in-out infinite .55s
+    }
+
+    .whyrl .vs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 800 1.1rem Inter, sans-serif;
+      color: var(--faint)
+    }
+
+    .whyrl .vs.gstep.show {
+      animation: gymStepIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .whyrl .takeaway.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    /* tiny animated figures */
+    .whyrl .wfig {
+      width: 100%;
+      height: 64px;
+      display: block;
+      margin: .3rem 0 .4rem;
+      overflow: visible
+    }
+
+    .whyrl .wfig .ln {
+      stroke: var(--coral);
+      stroke-width: 2;
+      stroke-linecap: round;
+      opacity: .55
+    }
+
+    .whyrl .wfig .nd {
+      fill: var(--panel2);
+      stroke: var(--coral);
+      stroke-width: 2
+    }
+
+    .whyrl .wfig .scissor {
+      font-size: 15px
+    }
+
+    .whyrl .card.show .wfig .scissor {
+      animation: cutMove 2.6s ease-in-out infinite
+    }
+
+    @keyframes cutMove {
+
+      0%,
+      100% {
+        transform: translateX(0)
+      }
+
+      50% {
+        transform: translateX(40px)
+      }
+    }
+
+    /* simulation-aware: a speed gauge filling up */
+    .whyrl .wfig .gtrack {
+      fill: none;
+      stroke: var(--line2);
+      stroke-width: 6;
+      stroke-linecap: round
+    }
+
+    .whyrl .wfig .gfill {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 126;
+      stroke-dashoffset: 126
+    }
+
+    .whyrl .card.show .wfig .gfill {
+      animation: gaugeFill 2.2s ease-in-out infinite
+    }
+
+    .whyrl .wfig .gneedle {
+      stroke: var(--green);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      transform-box: view-box;
+      transform-origin: 80px 56px
+    }
+
+    .whyrl .card.show .wfig .gneedle {
+      animation: gaugeNeedle 2.2s ease-in-out infinite
+    }
+
+    @keyframes gaugeFill {
+      0% {
+        stroke-dashoffset: 126
+      }
+
+      60%,
+      100% {
+        stroke-dashoffset: 20
+      }
+    }
+
+    @keyframes gaugeNeedle {
+      0% {
+        transform: rotate(-72deg)
+      }
+
+      60%,
+      100% {
+        transform: rotate(48deg)
+      }
+    }
+
+    /* --- training pipeline (horizontal circular flash cards, click-built) --- */
+    .tpipe {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: .1rem;
+      margin: 2.4rem auto 0;
+      flex-wrap: nowrap
+    }
+
+    .tpipe .tnode {
+      flex: 0 0 auto;
+      width: 138px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center
+    }
+
+    .tpipe .tnode.gstep.show {
+      animation: tNodeIn .55s cubic-bezier(.34, 1.56, .64, 1) forwards
+    }
+
+    .tpipe .tdisc {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.1rem;
+      background: radial-gradient(circle at 32% 26%, var(--panel2), var(--bg2));
+      border: 2.5px solid var(--tc, var(--teal));
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .3)
+    }
+
+    .tpipe .tnode.show .tdisc {
+      animation: tDotGlow 2.6s ease-in-out infinite
+    }
+
+    .tpipe .tnum {
+      font: 800 2.6rem/1 Inter, sans-serif;
+      letter-spacing: -.03em;
+      color: var(--tc, var(--teal))
+    }
+
+    .modenum {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5em;
+      height: 1.5em;
+      border-radius: 50%;
+      color: #07131f;
+      font-weight: 800;
+      font-size: .9em;
+      vertical-align: middle;
+      margin-right: .15em
+    }
+
+    .tpipe .tbadge {
+      position: absolute;
+      top: -6px;
+      right: -12px;
+      font: 800 .6rem 'SF Mono', monospace;
+      color: #07131f;
+      background: var(--tc, var(--teal));
+      border-radius: 999px;
+      padding: .22em .6em;
+      white-space: nowrap
+    }
+
+    .tpipe .tt {
+      font-weight: 800;
+      font-size: .92rem;
+      letter-spacing: -.01em;
+      margin-top: .7rem;
+      line-height: 1.2;
+      color: var(--tc, var(--ink))
+    }
+
+    .tpipe .ts {
+      color: var(--muted);
+      font-size: .72rem;
+      margin-top: .3rem;
+      line-height: 1.3;
+      padding: 0 .2rem
+    }
+
+    /* connector arrow between discs (vertically centred on the 96px disc) */
+    .tpipe .tarrow {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .tpipe .tarrow svg {
+      width: 34px;
+      height: 18px;
+      overflow: visible
+    }
+
+    .tpipe .tarrow .aln {
+      fill: none;
+      stroke: var(--line2);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 30;
+      stroke-dashoffset: 30
+    }
+
+    .tpipe .tarrow.gstep.show .aln {
+      animation: tArrowDraw .4s ease forwards
+    }
+
+    .tpipe .tarrow .ahd {
+      fill: var(--line2);
+      opacity: 0
+    }
+
+    .tpipe .tarrow.gstep.show .ahd {
+      animation: gnnFade .3s ease forwards .3s
+    }
+
+    @keyframes tNodeIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(.9)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes tArrowDraw {
+      to {
+        stroke-dashoffset: 0
+      }
+    }
+
+    @keyframes tDotGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .3), 0 0 0 0 rgba(255, 255, 255, 0)
+      }
+
+      50% {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .3), 0 0 18px 2px var(--tg, rgba(0, 207, 193, .5))
+      }
+    }
+
+    /* --- Router-collapse slide: animated routing histograms --- */
+    .rcol .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .rcol .card.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .rcol .card.edge-coral.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowCoral 2.8s ease-in-out infinite .55s
+    }
+
+    .rcol .card.edge-green.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowGreen 2.8s ease-in-out infinite .55s
+    }
+
+    .rcol .hist {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: .6rem;
+      height: 180px;
+      margin: 1rem .2rem .4rem
+    }
+
+    .rcol .hcol {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%
+    }
+
+    .rcol .hbar {
+      width: 100%;
+      border-radius: 7px 7px 0 0;
+      height: 0;
+      transition: none
+    }
+
+    .rcol .card.show .hbar {
+      animation: histGrow .9s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .rcol .card.show .hcol:nth-child(2) .hbar {
+      animation-delay: .08s
+    }
+
+    .rcol .card.show .hcol:nth-child(3) .hbar {
+      animation-delay: .16s
+    }
+
+    .rcol .card.show .hcol:nth-child(4) .hbar {
+      animation-delay: .24s
+    }
+
+    .rcol .card.show .hcol:nth-child(5) .hbar {
+      animation-delay: .32s
+    }
+
+    .rcol .card.show .hcol:nth-child(6) .hbar {
+      animation-delay: .40s
+    }
+
+    .rcol .hbar.coral {
+      background: linear-gradient(180deg, var(--coral), #a13b2e)
+    }
+
+    .rcol .hbar.green {
+      background: linear-gradient(180deg, var(--green), var(--teal-d))
+    }
+
+    .rcol .hpct {
+      font: 800 .82rem 'SF Mono', monospace;
+      margin-bottom: .3rem;
+      opacity: 0
+    }
+
+    .rcol .card.show .hpct {
+      animation: gnnFade .5s ease forwards .7s
+    }
+
+    .rcol .hk {
+      font: 700 .8rem Inter, sans-serif;
+      color: var(--muted);
+      margin-top: .4rem
+    }
+
+    .rcol .haxis {
+      border-top: 1px solid var(--line2);
+      margin: 0 .2rem
+    }
+
+    .rcol .hlabel {
+      text-align: center;
+      font: 600 .8rem Inter, sans-serif;
+      color: var(--faint);
+      margin-top: .5rem;
+      letter-spacing: .04em
+    }
+
+    @keyframes histGrow {
+      from {
+        height: 0
+      }
+
+      to {
+        height: var(--h)
+      }
+    }
+
+    /* big animated stat numbers */
+    .rcol .statline {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.2rem
+    }
+
+    .rcol .scard {
+      flex: 1;
+      text-align: center;
+      background: linear-gradient(180deg, var(--panel), var(--bg2));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem .6rem
+    }
+
+    .rcol .scard.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .rcol .scard .sv {
+      font: 800 2.1rem Inter, sans-serif;
+      letter-spacing: -.02em;
+      line-height: 1
+    }
+
+    .rcol .scard .sk {
+      color: var(--muted);
+      font-size: .82rem;
+      margin-top: .45rem;
+      line-height: 1.3
+    }
+
+    .rcol .scard.show .sv {
+      animation: gnnBeat 2.4s ease-in-out infinite .55s
+    }
+
+    /* three anti-collapse fix cards */
+    .rcol .fixrow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1.1rem
+    }
+
+    .rcol .fixc {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--green);
+      border-radius: 14px;
+      padding: 1rem 1rem .9rem;
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .rcol .fixc.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .rcol .fixc:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .rcol .fixc .fxn {
+      font: 800 1.9rem/1 Inter, sans-serif;
+      letter-spacing: -.03em;
+      background: linear-gradient(120deg, var(--teal), var(--green));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
+    }
+
+    .rcol .fixc .fxt {
+      margin-top: .45rem;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2
+    }
+
+    .rcol .fixc .fxd {
+      margin-top: .35rem;
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.4
+    }
+
+    .rcol .fixc .fxd b {
+      color: var(--ink);
+      font-weight: 700
+    }
+
+    /* ---------- RLSF policy architecture (every element click-revealed) ---------- */
+    .arch .step {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .arch .step.gstep.show {
+      animation: archIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .arch .step.show:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, .26)
+    }
+
+    .arch .step.show .n {
+      animation: archDot 2.4s ease-in-out infinite
+    }
+
+    .arch .arrow {
+      font-weight: 800
+    }
+
+    .arch .arrow.gstep.show {
+      animation: archIn .4s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .arch .arrow.show .ar {
+      display: inline-block;
+      animation: gymArrow 1.6s ease-in-out infinite .4s
+    }
+
+    @keyframes archIn {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(.96)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes archDot {
+
+      0%,
+      100% {
+        color: var(--teal)
+      }
+
+      50% {
+        color: var(--violet);
+        text-shadow: 0 0 10px rgba(124, 108, 246, .7)
+      }
+    }
+
+    /* ---------- MoE slides (router + experts) ---------- */
+    /* continuous animation on the architecture diagram */
+    .slide.active .moe-arch .flow {
+      stroke-dasharray: 5 7;
+      animation: flowDash .85s linear infinite
+    }
+
+    .slide.active .moe-arch .moe-enc {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: moeEncPulse 2.6s ease-in-out infinite
+    }
+
+    .slide.active .moe-arch .moe-router {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: moeRouterPulse 2.2s ease-in-out infinite
+    }
+
+    @keyframes moeEncPulse {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(124, 108, 246, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 12px rgba(124, 108, 246, .55))
+      }
+    }
+
+    @keyframes moeRouterPulse {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(245, 185, 66, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 12px rgba(245, 185, 66, .6))
+      }
+    }
+
+    /* expert rows fan in with a stagger when the slide activates; picks keep beating */
+    .moe-arch .moe-exp,
+    .moe-arch .moe-route {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: left center
+    }
+
+    .slide.active .moe-arch .moe-exp {
+      animation: moeExpIn .55s cubic-bezier(.34, 1.56, .64, 1) forwards
+    }
+
+    .slide.active .moe-arch .moe-route {
+      animation: moeRouteIn .5s ease forwards
+    }
+
+    .slide.active .moe-arch .mr1 {
+      animation-delay: .20s
+    }
+
+    .slide.active .moe-arch .mr2 {
+      animation-delay: .35s
+    }
+
+    .slide.active .moe-arch .mr3 {
+      animation-delay: .50s
+    }
+
+    .slide.active .moe-arch .mr4 {
+      animation-delay: .65s
+    }
+
+    .slide.active .moe-arch .mr5 {
+      animation-delay: .80s
+    }
+
+    .slide.active .moe-arch .mr6 {
+      animation-delay: .95s
+    }
+
+    .slide.active .moe-arch .moe-route.pick {
+      animation: moeRouteIn .5s ease forwards, flowDash .7s linear infinite 1.1s
+    }
+
+    .slide.active .moe-arch .moe-exp.pick.mr3 {
+      animation: moeExpIn .55s cubic-bezier(.34, 1.56, .64, 1) .50s forwards, moePickBeat 2s ease-in-out infinite 1.1s
+    }
+
+    .slide.active .moe-arch .moe-exp.pick.mr4 {
+      animation: moeExpIn .55s cubic-bezier(.34, 1.56, .64, 1) .65s forwards, moePickBeat 2s ease-in-out infinite 1.1s
+    }
+
+    @keyframes moeExpIn {
+      0% {
+        opacity: 0;
+        transform: translateX(16px) scale(.92)
+      }
+
+      100% {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes moeRouteIn {
+      0% {
+        opacity: 0
+      }
+
+      100% {
+        opacity: 1
+      }
+    }
+
+    @keyframes moePickBeat {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(46, 204, 113, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 9px rgba(46, 204, 113, .7))
+      }
+    }
+
+    /* k=3 collapse spotlight (first MoE slide warning) */
+    .slide.active .moe-arch .moe-collapse {
+      animation: moeCollapseGlow 1.8s ease-in-out infinite
+    }
+
+    @keyframes moeCollapseGlow {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(232, 76, 61, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 11px rgba(232, 76, 61, .75))
+      }
+    }
+
+    /* generic click-revealed cards on the collapse/fix slide */
+    .moe-cards .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .moe-cards .card.gstep.show {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .moe-cards .card.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .moe-cards .card.edge-coral.gstep.show {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowCoral 2.8s ease-in-out infinite .55s
+    }
+
+    .moe-cards .card.edge-green.gstep.show {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards, ppoGlowGreen 2.8s ease-in-out infinite .55s
+    }
+
+    .moe-cards .feat li {
+      opacity: 0;
+      transform: translateX(-12px)
+    }
+
+    .moe-cards .card.show .feat li {
+      animation: ppoLiIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .moe-cards .card.show .feat li:nth-child(1) {
+      animation-delay: .10s
+    }
+
+    .moe-cards .card.show .feat li:nth-child(2) {
+      animation-delay: .22s
+    }
+
+    .moe-cards .card.show .feat li:nth-child(3) {
+      animation-delay: .34s
+    }
+
+    .moe-cards .card.show .feat li:nth-child(4) {
+      animation-delay: .46s
+    }
+
+    .moe-cards .takeaway.gstep.show,
+    .moe-cards .lead.gstep.show {
+      animation: archIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    @keyframes ppoGlowCoral {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(232, 76, 61, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(232, 76, 61, .32)
+      }
+    }
+
+    @keyframes ppoGlowGreen {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(46, 204, 113, .32)
+      }
+    }
+
+    /* ---------- click-reveal helper for card grids ---------- */
+    .revgrid .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .revgrid .card.gstep.show {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .revgrid .card.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .revgrid .chip.gstep.show {
+      animation: archIn .45s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .revgrid .takeaway.gstep.show,
+    .revgrid .lead.gstep.show {
+      animation: archIn .5s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .cfig {
+      width: 62%;
+      max-width: 150px;
+      height: auto;
+      display: block;
+      margin: .6rem auto .3rem;
+      overflow: visible
+    }
+
+    .cfig .ct {
+      font-size: 7px;
+      font-weight: 700;
+      text-anchor: middle
+    }
+
+    .cfig .cs {
+      font-size: 7px;
+      font-weight: 600;
+      text-anchor: middle;
+      fill: var(--faint)
+    }
+
+    /* --- K-selection figures --- */
+    .fig-heur .gnode {
+      fill: var(--panel2);
+      stroke: var(--teal);
+      stroke-width: 1.6
+    }
+
+    .fig-heur .needle {
+      stroke: var(--teal);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      transform-box: view-box;
+      transform-origin: 50px 40px
+    }
+
+    .fig-heur .arc {
+      fill: none;
+      stroke: var(--line2);
+      stroke-width: 3
+    }
+
+    .card.show .fig-heur .needle {
+      animation: heurSweep 3s ease-in-out infinite
+    }
+
+    .card.show .fig-heur .gnode {
+      animation: heurBlink 2s ease-in-out infinite
+    }
+
+    @keyframes heurSweep {
+
+      0%,
+      100% {
+        transform: rotate(-46deg)
+      }
+
+      50% {
+        transform: rotate(38deg)
+      }
+    }
+
+    @keyframes heurBlink {
+
+      0%,
+      100% {
+        opacity: .55
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .fig-spec .ev {
+      fill: var(--blue);
+      opacity: .55
+    }
+
+    .fig-spec .gap {
+      fill: none;
+      stroke: var(--blue);
+      stroke-width: 1.6;
+      stroke-dasharray: 3 3
+    }
+
+    .card.show .fig-spec .ev {
+      animation: specGrow .9s cubic-bezier(.22, 1, .36, 1) backwards
+    }
+
+    .card.show .fig-spec .ev:nth-of-type(2) {
+      animation-delay: .08s
+    }
+
+    .card.show .fig-spec .ev:nth-of-type(3) {
+      animation-delay: .16s
+    }
+
+    .card.show .fig-spec .ev:nth-of-type(4) {
+      animation-delay: .24s
+    }
+
+    .card.show .fig-spec .ev:nth-of-type(5) {
+      animation-delay: .32s
+    }
+
+    .card.show .fig-spec .ev:nth-of-type(6) {
+      animation-delay: .40s
+    }
+
+    .card.show .fig-spec .gaphi {
+      animation: specGap 1.8s ease-in-out infinite
+    }
+
+    @keyframes specGrow {
+      from {
+        transform: scaleY(0)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    @keyframes specGap {
+
+      0%,
+      100% {
+        opacity: .3
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .fig-sweep .kbox {
+      fill: var(--panel2);
+      stroke: var(--violet);
+      stroke-width: 1.4
+    }
+
+    .fig-sweep .kbar {
+      fill: var(--violet);
+      opacity: .5
+    }
+
+    .fig-sweep .win {
+      stroke: var(--green);
+      stroke-width: 2;
+      fill: none
+    }
+
+    .card.show .fig-sweep .kbar {
+      animation: sweepBar .8s cubic-bezier(.22, 1, .36, 1) backwards
+    }
+
+    .card.show .fig-sweep .kbar:nth-of-type(2) {
+      animation-delay: .1s
+    }
+
+    .card.show .fig-sweep .kbar:nth-of-type(3) {
+      animation-delay: .2s
+    }
+
+    .card.show .fig-sweep .kbar:nth-of-type(4) {
+      animation-delay: .3s
+    }
+
+    .card.show .fig-sweep .win {
+      animation: sweepWin 1.6s ease-in-out infinite .8s
+    }
+
+    .card.show .fig-sweep .trophy {
+      animation: heurBlink 1.4s ease-in-out infinite .8s
+    }
+
+    @keyframes sweepBar {
+      from {
+        transform: scaleY(0)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    @keyframes sweepWin {
+
+      0%,
+      100% {
+        opacity: .4
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    /* --- K-selection flow chart --- */
+    .kflow {
+      margin-top: 1rem
+    }
+
+    .kflow .source {
+      display: flex;
+      justify-content: center
+    }
+
+    .kflow .knode {
+      position: relative;
+      border: 2px solid var(--line2);
+      border-radius: 14px;
+      background: radial-gradient(circle at 32% 22%, var(--panel2), var(--bg2));
+      padding: .7rem 1.1rem;
+      text-align: center;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .26)
+    }
+
+    .kflow .knode .kt {
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: -.01em
+    }
+
+    .kflow .knode .ks {
+      display: block;
+      color: var(--muted);
+      font-size: .74rem;
+      margin-top: .15rem
+    }
+
+    /* enlarged root cell with the full analyze_graph() metric table */
+    .kflow .knode.kbig {
+      padding: 1rem 1.4rem;
+      max-width: none;
+      width: min(880px, 94%);
+      margin: 0 auto
+    }
+
+    .kflow .knode.kbig .kt {
+      font-size: 1.25rem;
+      font-family: 'SF Mono', ui-monospace, monospace;
+      color: var(--amber)
+    }
+
+    /* standalone (slide of its own): bigger cell, larger metric tiles */
+    .kflow .knode.kbig2 {
+      padding: 1.6rem 2rem;
+      width: min(1040px, 96%)
+    }
+
+    .kflow .knode.kbig2 .kt {
+      font-size: 1.7rem
+    }
+
+    .kflow .knode.kbig2 .ks {
+      font-size: .92rem;
+      margin-top: .35rem
+    }
+
+    .kflow .knode.kbig2 .kmetrics {
+      gap: .75rem;
+      margin-top: 1.2rem
+    }
+
+    .kflow .knode.kbig2 .km {
+      padding: .7rem .85rem
+    }
+
+    .kflow .knode.kbig2 .km b {
+      font-size: .95rem
+    }
+
+    .kflow .knode.kbig2 .km span {
+      font-size: .8rem;
+      margin-top: .25rem
+    }
+
+    .kflow .kmetrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .5rem;
+      margin-top: .7rem;
+      text-align: left
+    }
+
+    .kflow .kmetrics .km:nth-child(1) {
+      grid-column: span 2
+    }
+
+    .kflow .km {
+      background: var(--panel);
+      border: 1px solid var(--line2);
+      border-radius: 9px;
+      padding: .4rem .55rem
+    }
+
+    .kflow .km b {
+      display: block;
+      font: 700 .76rem 'SF Mono', ui-monospace, monospace;
+      color: var(--ink)
+    }
+
+    .kflow .km span {
+      display: block;
+      color: var(--muted);
+      font-size: .66rem;
+      line-height: 1.3;
+      margin-top: .12rem
+    }
+
+    .kflow .source.gstep.show .km {
+      animation: kMetricIn .5s cubic-bezier(.22, 1, .36, 1) backwards
+    }
+
+    .kflow .source.gstep.show .km:nth-child(2) {
+      animation-delay: .06s
+    }
+
+    .kflow .source.gstep.show .km:nth-child(3) {
+      animation-delay: .12s
+    }
+
+    .kflow .source.gstep.show .km:nth-child(4) {
+      animation-delay: .18s
+    }
+
+    .kflow .source.gstep.show .km:nth-child(5) {
+      animation-delay: .24s
+    }
+
+    .kflow .source.gstep.show .km:nth-child(6) {
+      animation-delay: .30s
+    }
+
+    .kflow .source.gstep.show .km:nth-child(7) {
+      animation-delay: .36s
+    }
+
+    @keyframes kMetricIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* fork connectors */
+    .kflow .fork {
+      position: relative;
+      height: 46px;
+      margin: .15rem 0
+    }
+
+    .kflow .fork svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible
+    }
+
+    .kflow .fork path {
+      fill: none;
+      stroke: var(--line2);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-dasharray: var(--len, 200);
+      stroke-dashoffset: var(--len, 200)
+    }
+
+    .kflow .branches {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.1rem;
+      margin-top: .1rem
+    }
+
+    .kflow .branch {
+      position: relative
+    }
+
+    /* entrance + continuous animation, staged via .gstep */
+    .kflow .gstep.show .knode {
+      animation: pNodePop .55s cubic-bezier(.34, 1.56, .64, 1)
+    }
+
+    .kflow .source.gstep.show .knode {
+      border-color: var(--amber);
+      animation: pNodePop .55s cubic-bezier(.34, 1.56, .64, 1), kSrcGlow 2.8s ease-in-out infinite .55s
+    }
+
+    .kflow .fork.gstep.show path {
+      animation: kDraw .6s ease forwards
+    }
+
+    .kflow .branch.gstep.show .card {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards
+    }
+
+    .kflow .branch.edge-teal.gstep.show .card {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards, kGlowTeal 2.8s ease-in-out infinite .55s
+    }
+
+    .kflow .branch.edge-blue.gstep.show .card {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards, kGlowBlue 2.8s ease-in-out infinite .55s
+    }
+
+    .kflow .branch.edge-violet.gstep.show .card {
+      animation: archIn .55s cubic-bezier(.22, 1, .36, 1) forwards, kGlowViolet 2.8s ease-in-out infinite .55s
+    }
+
+    .kflow .branch .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .kflow .branch.show .card:hover {
+      transform: translateY(-4px)
+    }
+
+    @keyframes kDraw {
+      to {
+        stroke-dashoffset: 0
+      }
+    }
+
+    @keyframes kSrcGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .26), 0 0 0 0 rgba(245, 185, 66, 0)
+      }
+
+      50% {
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .26), 0 0 24px 2px rgba(245, 185, 66, .4)
+      }
+    }
+
+    @keyframes kGlowTeal {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 207, 193, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(0, 207, 193, .32)
+      }
+    }
+
+    @keyframes kGlowBlue {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(74, 144, 226, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(74, 144, 226, .32)
+      }
+    }
+
+    @keyframes kGlowViolet {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(124, 108, 246, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(124, 108, 246, .32)
+      }
+    }
+
+    /* --- Why-RL figures --- */
+    .fig-loop2 .ring2 {
+      fill: none;
+      stroke: var(--violet);
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-dasharray: 60 15;
+      stroke-dashoffset: 6
+    }
+
+    .fig-loop2 .dot2 {
+      fill: var(--violet)
+    }
+
+    .card.show .fig-loop2 .spin2 {
+      transform-box: view-box;
+      transform-origin: 50px 19px;
+      animation: loop2Spin 2.2s linear infinite
+    }
+
+    @keyframes loop2Spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .fig-stair .stp {
+      fill: none;
+      stroke: var(--teal);
+      stroke-width: 2.2;
+      stroke-linecap: round
+    }
+
+    .fig-stair .climber {
+      fill: var(--teal)
+    }
+
+    .card.show .fig-stair .climber {
+      animation: stairClimb 3s steps(1) infinite
+    }
+
+    @keyframes stairClimb {
+      0% {
+        transform: translate(0, 0)
+      }
+
+      25% {
+        transform: translate(18px, -10px)
+      }
+
+      50% {
+        transform: translate(36px, -20px)
+      }
+
+      75% {
+        transform: translate(54px, -30px)
+      }
+
+      100% {
+        transform: translate(0, 0)
+      }
+    }
+
+    .fig-scale .beam {
+      stroke: var(--amber);
+      stroke-width: 2.6;
+      stroke-linecap: round
+    }
+
+    .fig-scale .pan {
+      fill: var(--amber)
+    }
+
+    .fig-scale .post {
+      stroke: var(--amber);
+      stroke-width: 2.2;
+      stroke-linecap: round
+    }
+
+    .card.show .fig-scale .beam,
+    .card.show .fig-scale .pan {
+      transform-box: view-box;
+      transform-origin: 50px 14px;
+      animation: scaleTip 3s ease-in-out infinite
+    }
+
+    @keyframes scaleTip {
+
+      0%,
+      100% {
+        transform: rotate(-9deg)
+      }
+
+      50% {
+        transform: rotate(9deg)
+      }
+    }
+
+    .fig-gen .gg {
+      fill: var(--panel2);
+      stroke: var(--green);
+      stroke-width: 1.5
+    }
+
+    .fig-gen .ggline {
+      stroke: var(--green);
+      stroke-width: 1.4;
+      opacity: .5
+    }
+
+    .fig-gen .core2 {
+      fill: var(--green)
+    }
+
+    .card.show .fig-gen .gg {
+      animation: heurBlink 2s ease-in-out infinite
+    }
+
+    .card.show .fig-gen .pulse2 {
+      animation: genPulse 2s ease-out infinite;
+      transform-box: fill-box;
+      transform-origin: center
+    }
+
+    @keyframes genPulse {
+      0% {
+        transform: scale(.5);
+        opacity: .6
+      }
+
+      100% {
+        transform: scale(2);
+        opacity: 0
+      }
+    }
+
+    /* ---------- surrogate predictor slide (every element click-revealed) ---------- */
+    .surr .card {
+      transition: transform .25s, box-shadow .25s
+    }
+
+    .surr .card.show:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .28)
+    }
+
+    .surr .card.edge-green.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, surrGlowG 2.8s ease-in-out infinite .55s
+    }
+
+    .surr .card.edge-coral.gstep.show {
+      animation: gymStepIn .55s cubic-bezier(.22, 1, .36, 1) forwards, surrGlowC 2.8s ease-in-out infinite .55s
+    }
+
+    .surr-ms {
+      font-weight: 800;
+      color: var(--green)
+    }
+
+    .surr .card.edge-green.show .surr-ms {
+      animation: surrBlink 1.6s ease-in-out infinite .55s
+    }
+
+    @keyframes surrGlowG {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(52, 199, 123, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(52, 199, 123, .35)
+      }
+    }
+
+    @keyframes surrGlowC {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0)
+      }
+
+      50% {
+        box-shadow: 0 0 20px 1px rgba(255, 107, 107, .35)
+      }
+    }
+
+    @keyframes surrBlink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .35
+      }
+    }
+
+    /* surrogate / real animated figures */
+    .surr-fig {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: .7rem 0 .2rem;
+      overflow: visible
+    }
+
+    .surr-fig .lbl {
+      font: 700 8.5px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    .surr-fig .sub {
+      font: 600 7.5px Inter, sans-serif;
+      text-anchor: middle;
+      fill: var(--faint)
+    }
+
+    /* --- surrogate: fast neural net --- */
+    .fig-surr .syn {
+      stroke: var(--green);
+      stroke-width: 1.4;
+      opacity: .35;
+      fill: none
+    }
+
+    .fig-surr .nrn {
+      fill: var(--panel2);
+      stroke: var(--green);
+      stroke-width: 2
+    }
+
+    .fig-surr .out {
+      fill: var(--green)
+    }
+
+    .card.show .fig-surr .syn {
+      stroke-dasharray: 4 5;
+      animation: surrSyn .55s linear infinite
+    }
+
+    .card.show .fig-surr .nrn {
+      animation: surrNrn 1.4s ease-in-out infinite
+    }
+
+    .card.show .fig-surr .spark {
+      animation: surrSpark 1.1s ease-in-out infinite
+    }
+
+    .card.show .fig-surr .ms-badge {
+      animation: surrPop 1.4s ease-in-out infinite
+    }
+
+    @keyframes surrSyn {
+      to {
+        stroke-dashoffset: -18
+      }
+    }
+
+    @keyframes surrNrn {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(52, 199, 123, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 5px rgba(52, 199, 123, .8))
+      }
+    }
+
+    @keyframes surrSpark {
+      0% {
+        offset-distance: 0%;
+        opacity: 0
+      }
+
+      10% {
+        opacity: 1
+      }
+
+      90% {
+        opacity: 1
+      }
+
+      100% {
+        offset-distance: 100%;
+        opacity: 0
+      }
+    }
+
+    @keyframes surrPop {
+
+      0%,
+      100% {
+        transform: scale(1)
+      }
+
+      50% {
+        transform: scale(1.12)
+      }
+    }
+
+    /* --- real mode: four stages + slow progress sweep --- */
+    .fig-real .stg {
+      fill: var(--panel2);
+      stroke: var(--coral);
+      stroke-width: 1.8
+    }
+
+    .fig-real .chev path {
+      opacity: .35
+    }
+
+    .fig-real .prog {
+      stroke-dasharray: 304;
+      stroke-dashoffset: 304
+    }
+
+    .card.show .fig-real .stg {
+      animation: realStage 4s ease-in-out infinite
+    }
+
+    .card.show .fig-real .stg:nth-of-type(2) {
+      animation-delay: 1s
+    }
+
+    .card.show .fig-real .stg:nth-of-type(3) {
+      animation-delay: 2s
+    }
+
+    .card.show .fig-real .stg:nth-of-type(4) {
+      animation-delay: 3s
+    }
+
+    .card.show .fig-real .chev path {
+      animation: realChev 4s ease-in-out infinite
+    }
+
+    .card.show .fig-real .chev path:nth-of-type(2) {
+      animation-delay: 1s
+    }
+
+    .card.show .fig-real .chev path:nth-of-type(3) {
+      animation-delay: 2s
+    }
+
+    .card.show .fig-real .prog {
+      animation: realProg 4s linear infinite
+    }
+
+    @keyframes realStage {
+
+      0%,
+      100% {
+        fill: var(--panel2)
+      }
+
+      40%,
+      60% {
+        fill: rgba(255, 107, 74, .22)
+      }
+    }
+
+    @keyframes realChev {
+
+      0%,
+      100% {
+        opacity: .3
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    @keyframes realProg {
+      0% {
+        stroke-dashoffset: 304
+      }
+
+      90%,
+      100% {
+        stroke-dashoffset: 0
+      }
+    }
+
+    /* ---------- RLSF agent ↔ environment loop ---------- */
+    .rl {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      margin: .2rem auto 0
+    }
+
+    .rl svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible
+    }
+
+    .rl .rl-box {
+      fill: var(--panel2);
+      stroke-width: 2.5
+    }
+
+    .rl .rl-box.agent {
+      stroke: var(--violet)
+    }
+
+    .rl .rl-box.env {
+      stroke: var(--teal)
+    }
+
+    .rl .rl-t {
+      font: 800 16px Inter, sans-serif;
+      text-anchor: middle;
+      fill: var(--ink)
+    }
+
+    .rl .rl-s {
+      font: 600 11px Inter, sans-serif;
+      text-anchor: middle;
+      fill: var(--muted)
+    }
+
+    .rl .rl-path {
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round
+    }
+
+    .rl .rl-path.act {
+      stroke: var(--amber)
+    }
+
+    .rl .rl-path.fb {
+      stroke: var(--teal)
+    }
+
+    .rl .rl-lab {
+      font: 700 11.5px Inter, sans-serif;
+      text-anchor: middle
+    }
+
+    .slide.active .rl .rl-box.agent {
+      animation: rlPulseV 2.6s ease-in-out infinite
+    }
+
+    .slide.active .rl .rl-box.env {
+      animation: rlPulseT 2.6s ease-in-out infinite 1.3s
+    }
+
+    .slide.active .rl .rl-flow {
+      stroke-dasharray: 8 10;
+      animation: rlFlow 1.1s linear infinite
+    }
+
+    .slide.active .rl .rl-flow.rev {
+      animation: rlFlowRev 1.1s linear infinite
+    }
+
+    .slide.active .rl .rl-spark {
+      animation: rlSpark 3.2s ease-in-out infinite
+    }
+
+    @keyframes rlFlow {
+      to {
+        stroke-dashoffset: -36
+      }
+    }
+
+    @keyframes rlFlowRev {
+      to {
+        stroke-dashoffset: 36
+      }
+    }
+
+    @keyframes rlPulseV {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(124, 108, 246, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 14px rgba(124, 108, 246, .55))
+      }
+    }
+
+    @keyframes rlPulseT {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0 rgba(0, 207, 193, 0))
+      }
+
+      50% {
+        filter: drop-shadow(0 0 14px rgba(0, 207, 193, .5))
+      }
+    }
+
+    @keyframes rlSpark {
+
+      0%,
+      100% {
+        opacity: .25;
+        r: 4
+      }
+
+      50% {
+        opacity: 1;
+        r: 6
+      }
+    }
+
+    /* ---------- final "thank you" calligraphy slide ---------- */
+    .thanks {
+      justify-content: center;
+      align-items: center;
+      text-align: center
+    }
+
+    .thanks .slide-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.2rem
+    }
+
+    .thanks .calli {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.6rem 2rem
+    }
+
+    /* soft teal-violet aura behind the ink (works on any background) */
+    .thanks .calli::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 78%;
+      height: 120%;
+      border-radius: 50%;
+      z-index: 0;
+      background: radial-gradient(ellipse at center, rgba(0, 207, 193, .22) 0%, rgba(124, 108, 246, .14) 45%, transparent 72%);
+      filter: blur(8px)
+    }
+
+    .thanks .calli img {
+      position: relative;
+      z-index: 1;
+      width: min(760px, 72vw);
+      height: auto;
+      display: block
+    }
+
+    /* dark mode: invert the black ink to soft white so it glows on the dark bg */
+    .thanks .calli img {
+      filter: invert(1) brightness(1.15) drop-shadow(0 0 16px rgba(0, 207, 193, .35))
+    }
+
+    body.light .thanks .calli img {
+      filter: none
+    }
+
+    .slide.active .thanks .calli::before {
+      animation: calliGlow 4s ease-in-out infinite
+    }
+
+    .slide.active .thanks .calli img {
+      animation: calliRise 1.1s cubic-bezier(.22, 1, .36, 1) both
+    }
+
+    @keyframes calliGlow {
+
+      0%,
+      100% {
+        opacity: .7;
+        transform: translate(-50%, -50%) scale(.97)
+      }
+
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.03)
+      }
+    }
+
+    @keyframes calliRise {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(.97)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .thanks .ty {
+      font-size: clamp(2.4rem, 5.5vw, 4.4rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.3;
+      padding: .15em 0 .3em;
+      background: linear-gradient(90deg, var(--teal), var(--violet), var(--teal));
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
+    }
+
+    .slide.active .thanks .ty {
+      animation: calliRise 1.1s cubic-bezier(.22, 1, .36, 1) .25s both, tyGradient 5s linear infinite 1.1s
+    }
+
+    @keyframes tyGradient {
+      to {
+        background-position: 220% center
+      }
+    }
+
+    .thanks .tysub {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-top: .9rem;
+      letter-spacing: .02em
+    }
+
+    .slide.active .thanks .tysub {
+      animation: calliRise 1.1s cubic-bezier(.22, 1, .36, 1) .45s both
+    }
+
+    /* orbiting glow rings behind the calligraphy */
+    .thanks .calli .ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+      border: 1.5px solid transparent
+    }
+
+    .thanks .calli .ring.r1 {
+      width: 560px;
+      height: 560px;
+      margin: -280px 0 0 -280px;
+      border-top-color: rgba(0, 207, 193, .35);
+      border-right-color: rgba(0, 207, 193, .12)
+    }
+
+    .thanks .calli .ring.r2 {
+      width: 760px;
+      height: 760px;
+      margin: -380px 0 0 -380px;
+      border-bottom-color: rgba(124, 108, 246, .3);
+      border-left-color: rgba(124, 108, 246, .1)
+    }
+
+    .slide.active .thanks .calli .ring.r1 {
+      animation: ringSpin 14s linear infinite
+    }
+
+    .slide.active .thanks .calli .ring.r2 {
+      animation: ringSpin 20s linear infinite reverse
+    }
+
+    @keyframes ringSpin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* shimmer sweep across the calligraphy (clipped to the image wrapper only) */
+    .thanks .calli-img {
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      overflow: hidden
+    }
+
+    .thanks .calli-img::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -60%;
+      width: 45%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .45), transparent);
+      transform: skewX(-18deg)
+    }
+
+    .slide.active .thanks .calli-img::after {
+      animation: calliShimmer 4.5s ease-in-out infinite 1.4s
+    }
+
+    body.light .thanks .calli-img::after {
+      background: linear-gradient(105deg, transparent, rgba(0, 207, 193, .25), transparent)
+    }
+
+    @keyframes calliShimmer {
+      0% {
+        left: -60%
+      }
+
+      45%,
+      100% {
+        left: 130%
+      }
+    }
+
+    /* rising particles */
+    .thanks .ty-particles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0
+    }
+
+    .thanks .ty-particles span {
+      position: absolute;
+      bottom: -20px;
+      left: var(--x);
+      width: var(--s);
+      height: var(--s);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, var(--teal), var(--violet));
+      opacity: 0;
+      filter: blur(.4px)
+    }
+
+    .slide.active .thanks .ty-particles span {
+      animation: tyFloat var(--d) linear infinite var(--delay)
+    }
+
+    @keyframes tyFloat {
+      0% {
+        transform: translateY(0) scale(.6);
+        opacity: 0
+      }
+
+      12% {
+        opacity: .8
+      }
+
+      80% {
+        opacity: .6
+      }
+
+      100% {
+        transform: translateY(-92vh) scale(1);
+        opacity: 0
+      }
+    }
+
+    @media (max-width:760px) {
+      .cols {
+        grid-template-columns: 1fr
+      }
+
+      .g3,
+      .g4 {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .bar-row {
+        grid-template-columns: 120px 1fr 48px
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="brand"> Report &times; <b>NU Research </b></div>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark mode"><span class="ti"
+      id="themeIcon">☀️</span><span id="themeLabel">Light</span></button>
+  <div class="deck" id="deck">
+
+    <!-- 1 ─ TITLE -->
+    <section class="slide title-slide">
+      <div class="slide-inner">
+
+        <div class="cover-top">
+
+          <div class="badge-row">
+            <span class="badge fill">Summer Research Internship · 2026</span>
+            <span class="badge">Internet of Things (IoT) Track</span>
+            <span class="badge">Nile University</span>
+          </div>
+
+          <div class="logos">
+            <div class="logo mark">
+              <img src="Figures/NU.webp" alt="Nile University" style="height: 210px; width: auto;">
+            </div>
+          </div>
+
+        </div>
+
+        <h1>
+          <span class="accent">Nile University</span><br>
+          Summer Research Internship<br>
+          IoT Track
+        </h1>
+
+        <p class="lead">
+          A hands-on research internship covering
+          <strong>Raspberry Pi</strong>,
+          <strong>Internet of Things (IoT)</strong>,
+          <strong>MQTT Communication</strong>,
+          <strong>Cloud Dashboards</strong>, and
+          <strong>Real-Time Operating Systems (RTOS)</strong>.
+        </p>
+
+        <div class="authors">
+
+          <div class="col">
+            <div class="h">Presented By</div>
+            <div>Abdulrahman Khalaf</div>
+            <div>Shahd Elsahafei</div>
+            <div>Youssef Khaled Omar</div>
+          </div>
+
+          <div class="col">
+            <div class="h">Research Program</div>
+            <div>Nile University</div>
+            <div>Summer Research Internship 2026</div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 1b ─ AGENDA -->
+    <section class="slide">
+      <div class="slide-inner">
+
+        <span class="kicker">Agenda</span>
+
+        <h2>
+          What we'll cover
+          <span class="step-hint">click to reveal ▸</span>
+        </h2>
+
+        <div class="grid g2 revgrid click-advance" style="margin-top:1.8rem">
+
+          <div class="card edge-teal gstep">
+            <h3 class="accent">01 · Introduction</h3>
+            <p>
+              Overview of the internship, objectives, and the research roadmap.
+            </p>
+          </div>
+
+          <div class="card edge-blue gstep">
+            <h3 class="blue">02 · Raspberry Pi Development</h3>
+            <p>
+              Linux, Python programming, GPIO interfacing, sensors, and embedded application development.
+            </p>
+          </div>
+
+          <div class="card edge-violet gstep">
+            <h3 class="violet">03 · IoT & RTOS Applications</h3>
+            <p>
+              MQTT communication, cloud dashboards, and real-time embedded systems using the TI CC1352 LaunchPad.
+            </p>
+          </div>
+
+          <div class="card edge-green gstep">
+            <h3 class="green">04 · Results</h3>
+            <p>
+              Demonstrations, project outcomes, and the technical skills acquired throughout the internship.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 2 ─ INTRODUCTION -->
+    <section class="slide">
+      <div class="slide-inner">
+
+        <span class="kicker">Introduction</span>
+
+        <h2>
+          A Four-Week Journey into
+          <span class="accent">Internet of Things</span>
+        </h2>
+
+        <p class="lead">
+          we spent four weeks working in the
+          <strong>(NISC)</strong>,
+          attending laboratory sessions twice per week to explore the fundamentals of IoT
+        </p>
+
+        <div class="stats">
+
+          <div class="stat">
+            <div class="v accent">4 Weeks</div>
+            <div class="k">Summer research internship</div>
+          </div>
+
+          <div class="stat">
+            <div class="v blue">2 Days / Week</div>
+            <div class="k">Hands-on laboratory sessions</div>
+          </div>
+
+          <div class="stat">
+            <div class="v amber">3 Tracks</div>
+            <div class="k">Raspberry Pi, IoT & RTOS</div>
+          </div>
+
+        </div>
+
+        <div class="takeaway">
+          <span class="lbl">Objective</span>
+          <p>
+            Build a practical understanding of modern IoT systems by combining
+            <strong>embedded programming</strong>,
+            <strong>network communication</strong>,
+            <strong>cloud platforms</strong>,
+            and
+            <strong>real-time operating systems.</strong>
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- 3 ─ RESEARCH JOURNEY -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Research Journey</span>
+
+        <h2>
+          Learning Step by Step
+          <span class="step-hint">click to build ▸</span>
+        </h2>
+
+        <p class="lead">
+          The internship was organized as a progressive learning journey,
+          where every stage built upon the previous one.
+        </p>
+
+        <div class="pipe click-advance">
+
+          <div class="pipe-row">
+
+            <div class="pstage gstep">
+              <div class="pconn"></div>
+              <div class="pnode"><span class="pnum">1</span></div>
+              <div class="ptitle">Introduction</div>
+              <div class="pdesc">
+                Linux Environment<br>
+                Python Basics
+              </div>
+            </div>
+
+            <div class="pstage gstep">
+              <div class="pconn"></div>
+              <div class="pnode"><span class="pnum">2</span></div>
+              <div class="ptitle">Raspberry Pi</div>
+              <div class="pdesc">
+                GPIO<br>
+                Sensors<br>
+                Hardware Interfacing
+              </div>
+            </div>
+
+            <div class="pstage gstep">
+              <div class="pconn"></div>
+              <div class="pnode"><span class="pnum">3</span></div>
+              <div class="ptitle">IoT</div>
+              <div class="pdesc">
+                MQTT<br>
+                Networking<br>
+                Communication
+              </div>
+            </div>
+
+            <div class="pstage gstep">
+              <div class="pconn"></div>
+              <div class="pnode"><span class="pnum">4</span></div>
+              <div class="ptitle">Cloud</div>
+              <div class="pdesc">
+                InfluxDB<br>
+                Grafana Dashboard
+              </div>
+            </div>
+
+            <div class="pstage gstep">
+              <div class="pconn"></div>
+              <div class="pnode"><span class="pnum">5</span></div>
+              <div class="ptitle">RTOS</div>
+              <div class="pdesc">
+                CC1352 LaunchPad<br>
+                Task Scheduling
+              </div>
+            </div>
+
+            <div class="pstage gstep">
+              <div class="pconn"></div>
+              <div class="pnode"><span class="pnum">6</span></div>
+              <div class="ptitle">Integration</div>
+              <div class="pdesc">
+                Complete IoT System
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="gstep" style="margin-top:2rem">
+
+          <div class="grid g3">
+
+            <div class="card edge-blue">
+              <div class="big blue">Raspberry Pi</div>
+              <p>Embedded Linux, Python and hardware interfacing.</p>
+            </div>
+
+            <div class="card edge-violet">
+              <div class="big violet">IoT</div>
+              <p>MQTT communication, cloud databases and dashboards.</p>
+            </div>
+
+            <div class="card edge-green">
+              <div class="big green">RTOS</div>
+              <p>Real-time embedded software using the TI CC1352 LaunchPad.</p>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="takeaway gstep">
+
+          <span class="lbl">Outcome</span>
+
+          <p>
+            By the end of the internship, we successfully combined
+            embedded hardware,
+            IoT communication,
+            cloud visualization,
+            and real-time software development
+            into a complete embedded systems workflow.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Raspberry Pi Task 1 ─ Task Description -->
+    <section class="slide">
+      <div class="slide-inner">
+
+        <span class="kicker">Raspberry Pi Development</span>
+
+        <h2>
+          Task 1 — LED Blink Control using a Push Button
+          <span class="step-hint">click to build ▸</span>
+        </h2>
+
+        <p class="lead">
+          A simple embedded application demonstrating how a Raspberry Pi reads a
+          <strong>digital input</strong> from a push button and controls a
+          <strong>digital output</strong> by turning an LED on and off.
+        </p>
+
+        <div class="cols tight click-advance" style="align-items:center; margin-top:1rem;">
+
+          <!-- Animated Circuit -->
+          <div>
+
+            <svg viewBox="0 0 520 380" class="mp-stage">
+
+              <!-- Battery -->
+              <g class="gstep">
+                <line x1="70" y1="70" x2="70" y2="120" stroke="white" stroke-width="4" />
+                <line x1="82" y1="60" x2="82" y2="130" stroke="white" stroke-width="8" />
+
+                <text x="45" y="45" fill="var(--muted)">Battery</text>
+              </g>
+
+              <!-- Wire -->
+              <g class="gstep">
+                <path d="M82 95 H180" stroke="var(--teal)" stroke-width="4" fill="none" />
+              </g>
+
+              <!-- Switch -->
+              <g class="gstep">
+
+                <circle cx="180" cy="95" r="5" fill="white" />
+                <circle cx="230" cy="95" r="5" fill="white" />
+
+                <!-- closed switch -->
+                <line x1="180" y1="95" x2="230" y2="95" stroke="var(--amber)" stroke-width="5" />
+
+                <text x="165" y="70" fill="var(--muted)">Button</text>
+
+              </g>
+
+              <!-- Wire -->
+              <g class="gstep">
+                <path d="M230 95 H300 V170" stroke="var(--teal)" stroke-width="4" fill="none" />
+              </g>
+
+              <!-- Raspberry Pi -->
+              <g class="gstep">
+
+                <rect x="250" y="170" width="120" height="90" rx="10" fill="#1d2b36" stroke="var(--green)"
+                  stroke-width="3" />
+
+                <text x="310" y="210" text-anchor="middle" fill="white" font-size="18">
+                  Raspberry Pi
+                </text>
+
+                <text x="310" y="235" text-anchor="middle" fill="var(--teal)" font-size="13">
+                  GPIO17
+                </text>
+
+              </g>
+
+              <!-- LED -->
+              <g class="gstep">
+
+                <path d="M370 215 H430" stroke="var(--teal)" stroke-width="4" />
+
+                <circle id="ledGlow" cx="455" cy="215" r="18" fill="#ffe44a">
+
+                  <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite" />
+
+                </circle>
+
+                <text x="445" y="255" fill="var(--muted)">
+                  LED
+                </text>
+
+              </g>
+
+              <!-- Current -->
+              <g class="gstep">
+
+                <circle r="5" fill="var(--blue)">
+                  <animateMotion dur="2s" repeatCount="indefinite" path="M82 95 H230 V170 H370 H455" />
+                </circle>
+
+                <circle r="5" fill="var(--blue)">
+                  <animateMotion begin=".6s" dur="2s" repeatCount="indefinite" path="M82 95 H230 V170 H370 H455" />
+                </circle>
+
+                <circle r="5" fill="var(--blue)">
+                  <animateMotion begin="1.2s" dur="2s" repeatCount="indefinite" path="M82 95 H230 V170 H370 H455" />
+                </circle>
+
+              </g>
+
+            </svg>
+
+          </div>
+
+          <!-- Right side -->
+          <div>
+
+            <ul class="b">
+
+              <li class="gstep">
+                Read the state of a
+                <strong>push button</strong>
+                using a Raspberry Pi GPIO input.
+              </li>
+
+              <li class="gstep">
+                Control an
+                <strong>LED</strong>
+                through a GPIO output pin.
+              </li>
+
+              <li class="gstep">
+                Implement the control logic using
+                <strong>C</strong>.
+              </li>
+
+              <li class="gstep">
+                Understand the relationship between
+                hardware connections and software execution.
+              </li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+        <div class="takeaway gstep">
+
+          <span class="lbl">Key Concept</span>
+
+          <p>
+            A digital input from the push button is continuously monitored by the
+            Raspberry Pi. Based on its state, the program updates the GPIO output,
+            causing the LED to turn <strong>ON</strong> or <strong>OFF</strong>.
+          </p>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================
+    Raspberry Pi Task 1 ─ Methodology
+    =========================================================== -->
+    <section class="slide">
+      <div class="slide-inner">
+
+        <span class="kicker">Raspberry Pi Development</span>
+
+        <h2>
+          Three Software Approaches
+          <span class="step-hint">click to build ▸</span>
+        </h2>
+
+        <p class="lead">
+          The same hardware can be controlled using three different software techniques.
+        </p>
+
+        <div class="method-tree click-advance">
+
+          <!-- ================= ROOT ================= -->
+
+          <div class="method-root gstep">
+
+            <div class="root-card">
+
+              <img src="../Tasks/Task3/T3_Button.jpeg">
+
+              <h3>LED + Push Button Circuit</h3>
+
+            </div>
+
+          </div>
+
+
+          <!-- ================= SVG ================= -->
+
+          <svg class="tree-svg" viewBox="0 0 1200 420">
+
+            <!-- branches -->
+
+            <path id="delayPath" d="M600 60 L300 220" class="branch" />
+
+            <path id="timerPath" d="M600 60 L600 220" class="branch" />
+
+            <path id="interruptPath" d="M600 60 L900 220" class="branch" />
+
+            <!-- glowing pulse -->
+
+            <circle id="pulse" r="8" cx="600" cy="60" />
+
+          </svg>
+
+
+          <!-- ================= METHODS ================= -->
+
+          <div class="method-row">
+
+
+            <!-- Delay -->
+
+            <div class="method-card gstep" id="delayCard">
+
+              <div class="method-title">
+
+                Delay-Based
+
+              </div>
+
+              <div class="method-icon">
+                <i class="fas fa-hourglass-half"></i>
+              </div>
+
+              <div class="method-desc">
+                Uses software delay loops to periodically
+                toggle the LED.
+              </div>
+
+
+            </div>
+
+
+
+            <!-- Timer -->
+
+            <div class="method-card gstep" id="timerCard">
+
+              <div class="method-title">
+
+                Timer-Based
+
+              </div>
+
+              <div class="method-icon">
+                <i class="fas fa-stopwatch"></i>
+              </div>
+
+              <div class="method-desc">
+                Uses hardware timers to generate precise
+                blinking intervals.
+              </div>
+
+            </div>
+
+
+
+            <!-- Interrupt -->
+
+            <div class="method-card gstep" id="interruptCard">
+
+              <div class="method-title">
+
+                Interrupt-Based
+
+              </div>
+
+              <div class="method-icon">
+                <i class="fas fa-bolt"></i>
+              </div>
+
+              <div class="method-desc">
+                Reacts immediately to button presses using
+                GPIO interrupts.
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="takeaway gstep">
+
+          <span class="lbl">Observation</span>
+
+          <p>
+
+            Although the hardware remains identical, changing the software architecture
+            significantly affects timing accuracy, CPU utilization and responsiveness.
+
+          </p>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================
+ Raspberry Pi Task 1 ─ Delay-Based
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Raspberry Pi Development</span>
+
+        <div class="badge-row" style="margin-bottom:.8rem">
+          <span class="badge fill">Method 1 / 3</span>
+          <span class="badge">Delay-Based Control</span>
+        </div>
+
+        <h2>
+          Delay-Based LED Blinking
+        </h2>
+
+        <p class="lead">
+          The LED is toggled using software delay loops. This approach is straightforward to implement but keeps the CPU
+          occupied during each delay interval.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task2_LED.mp4" type="video/mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Key Idea</span>
+
+          <p>
+
+            Simple and easy to understand, but inefficient because the processor remains blocked while waiting.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================================
+ Raspberry Pi Task 1 ─ Timer-Based
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Raspberry Pi Development</span>
+
+        <div class="badge-row" style="margin-bottom:.8rem">
+          <span class="badge fill">Method 2 / 3</span>
+          <span class="badge">Timer-Based Control</span>
+        </div>
+
+        <h2>
+          Hardware Timer Control
+        </h2>
+
+        <p class="lead">
+          Hardware timers generate periodic events independently of the main program, allowing accurate LED blinking
+          while freeing the CPU for other tasks.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task3_Button.mp4" type="video/mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Key Idea</span>
+
+          <p>
+
+            Hardware timers improve timing precision and reduce unnecessary CPU usage.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==========================================================
+ Raspberry Pi Task 1 ─ Interrupt-Based
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Raspberry Pi Development</span>
+
+        <div class="badge-row" style="margin-bottom:.8rem">
+          <span class="badge fill">Method 3 / 3</span>
+          <span class="badge">Interrupt-Based Control</span>
+        </div>
+
+        <h2>
+          GPIO Interrupt Handling
+        </h2>
+
+        <p class="lead">
+          Instead of continuously checking the button state, GPIO interrupts allow the Raspberry Pi to react instantly
+          whenever the button is pressed.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task4_INTR.mp4" type="video/mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Key Idea</span>
+
+          <p>
+
+            Interrupt-driven programming provides immediate response while minimizing processor workload.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================================
+ IoT Task 1 ─ Description
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Internet of Things (IoT)</span>
+
+        <h2>
+          From Edge Devices to the Cloud
+          <span class="step-hint">click to build ▸</span>
+        </h2>
+
+        <p class="lead">
+          Sensor measurements collected by the Raspberry Pi were transmitted to a cloud platform,
+          stored in a database, and visualized through a real-time dashboard.
+        </p>
+
+        <div class="cols tight click-advance" style="align-items:center;margin-top:.5rem">
+
+          <!---------------------------------------------------------->
+          <!-- Left Animation -->
+          <!---------------------------------------------------------->
+
+          <div>
+
+            <svg class="mp-stage" viewBox="0 0 420 340">
+
+              <defs>
+
+                <marker id="iotArrow" markerWidth="5" markerHeight="5" refX="8" refY="5" orient="auto">
+
+                  <path d="M0,0 L10,5 L0,10 z" fill="var(--teal)" />
+
+                </marker>
+
+              </defs>
+
+              <!-- ===================== Sensors ===================== -->
+
+              <g class="gstep">
+
+                <line class="mp-edge" x1="80" y1="60" x2="180" y2="150" />
+
+                <line class="mp-edge" x1="340" y1="70" x2="240" y2="150" />
+
+                <line class="mp-edge" x1="90" y1="280" x2="180" y2="180" />
+
+                <line class="mp-edge" x1="330" y1="270" x2="240" y2="180" />
+
+                <circle class="mp-nbr" cx="80" cy="60" r="22" />
+
+                <circle class="mp-nbr" cx="340" cy="70" r="22" />
+
+                <circle class="mp-nbr" cx="90" cy="280" r="22" />
+
+                <circle class="mp-nbr" cx="330" cy="270" r="22" />
+
+                <text x="80" y="67" text-anchor="middle" font-size="20">🌡</text>
+
+                <text x="340" y="77" text-anchor="middle" font-size="20">💧</text>
+
+                <text x="90" y="287" text-anchor="middle" font-size="20">💡</text>
+
+                <text x="330" y="277" text-anchor="middle" font-size="20">📡</text>
+
+              </g>
+
+              <!-- ================= Raspberry Pi ================= -->
+
+              <g class="gstep">
+
+                <circle class="mp-center" cx="210" cy="165" r="34" />
+
+                <circle class="mp-halo" cx="210" cy="165" r="36" />
+
+                <text x="210" y="160" text-anchor="middle" font-size="22">🍓</text>
+
+                <text x="210" y="185" text-anchor="middle" font-size="12" fill="white">
+
+                  Raspberry Pi
+
+                </text>
+
+              </g>
+
+              <!-- ================= Packets ================= -->
+
+              <g class="mpstep gstep">
+
+                <circle class="msg" r="5" style="offset-path:path('M80,60 L210,165')" />
+
+                <circle class="msg" r="5" style="offset-path:path('M340,70 L210,165');animation-delay:.4s" />
+
+                <circle class="msg" r="5" style="offset-path:path('M90,280 L210,165');animation-delay:.8s" />
+
+                <circle class="msg" r="5" style="offset-path:path('M330,270 L210,165');animation-delay:1.2s" />
+
+              </g>
+
+              <!-- ================= Cloud ================= -->
+
+              <g class="gstep">
+
+                <!-- Connection from Pi -->
+                <line class="mp-edge" x1="210" y1="130" x2="210" y2="82" />
+
+                <!-- Cloud shape -->
+                <g transform="translate(210 48)">
+
+                  <path class="iot-cloud" d="
+              M-42 22
+              C-52 22 -60 14 -60 4
+              C-60 -6 -52 -14 -42 -14
+              C-38 -28 -26 -36 -12 -36
+              C2 -36 14 -28 18 -16
+              C30 -16 40 -8 40 4
+              C52 6 60 16 60 28
+              C60 42 48 52 34 52
+              L-38 52
+              C-52 52 -62 42 -62 30
+              C-62 26 -60 24 -58 22
+              Z" />
+
+                  <text x="0" y="20" class="cloud-label">
+
+                    IoT
+
+                  </text>
+
+                </g>
+
+              </g>
+
+              <!-- Pi -> Cloud -->
+
+              <g class="gstep">
+
+                <circle class="msg" r="5" style="
+                offset-path:path('M210,165 L210,80');
+                animation-delay:.2s;"></circle>
+
+                <circle class="msg" r="5" style="
+                offset-path:path('M210,165 L210,80');
+                animation-delay:1.0s;"></circle>
+
+              </g>
+
+              <!-- ================= Database ================= -->
+
+              <g class="gstep">
+
+                <line class="mp-edge" x1="250" y1="48" x2="320" y2="48" />
+
+                <!-- Packet -->
+
+                <circle class="msg" r="5" style="
+offset-path:path('M250,48 L320,48');
+animation-delay:.5s;"></circle>
+
+                <text x="360" y="35" font-size="34">
+
+                  🛢
+
+                </text>
+
+                <text x="360" y="10" text-anchor="middle" font-size="12" fill="white">
+
+                  Database
+
+                </text>
+
+              </g>
+
+              <!-- ================= Dashboard ================= -->
+
+              <g class="gstep">
+
+                <line class="mp-edge" x1="370" y1="60" x2="370" y2="120" />
+
+                <text x="370" y="165" font-size="34">
+
+                  📊
+
+                </text>
+
+                <text x="370" y="190" text-anchor="middle" font-size="12" fill="white">
+
+                  Dashboard
+
+                </text>
+
+              </g>
+
+            </svg>
+
+          </div>
+
+          <!---------------------------------------------------------->
+          <!-- Right Side -->
+          <!---------------------------------------------------------->
+
+          <div>
+
+            <ul class="b">
+
+              <li class="gstep">
+
+                <strong class="green">Sensor Acquisition</strong>
+
+                The Raspberry Pi periodically acquires measurements from connected sensors.
+
+              </li>
+
+              <li class="gstep">
+
+                <strong class="accent">Cloud Communication</strong>
+
+                Measurements are transmitted through Internet protocols to a cloud platform.
+
+              </li>
+
+              <li class="gstep">
+
+                <strong class="amber">Data Storage</strong>
+
+                Incoming values are stored inside a cloud database for later retrieval.
+
+              </li>
+
+              <li class="gstep">
+
+                <strong class="violet">Visualization</strong>
+
+                A live dashboard displays the sensor values in real time from anywhere.
+
+              </li>
+
+            </ul>
+
+            <div class="takeaway gstep">
+
+              <span class="lbl">
+
+                Task Objective
+
+              </span>
+
+              <p>
+
+                Build a complete IoT pipeline that connects edge devices to cloud services for real-time monitoring and
+                visualization.
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================================
+ IoT Task 2 ─ HTTPS vs MQTT
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Internet of Things</span>
+
+        <h2>
+          HTTPS vs MQTT
+          <span class="step-hint">click to compare ▸</span>
+        </h2>
+
+        <p class="lead">
+          Two communication protocols were implemented for sending sensor values to the cloud.
+        </p>
+
+        <div class="grid g2 click-advance" style="margin-top:1rem">
+
+          <!-- ===================================================== -->
+          <!-- HTTPS -->
+          <!-- ===================================================== -->
+
+          <div class="card edge-blue gstep">
+
+            <h3 class="blue">
+              <i class="fa-solid fa-globe"></i>
+              HTTPS
+            </h3>
+
+            <p class="sub">
+              Polling / Request-Response
+            </p>
+
+            <svg class="proto-stage" viewBox="0 0 320 170">
+
+              <!-- Pi -->
+              <circle class="proto-node" cx="70" cy="85" r="26" />
+              <text x="70" y="92" text-anchor="middle" font-size="22">🍓</text>
+
+              <!-- Cloud -->
+              <path class="proto-cloud" d="
+M215 62
+C205 62 197 54 197 45
+C197 35 205 27 215 27
+C219 15 230 8 243 8
+C256 8 268 16 272 27
+C283 27 292 36 292 47
+C302 50 309 58 309 69
+C309 82 299 92 287 92
+L214 92
+C202 92 192 83 192 71
+C192 67 194 64 197 62
+Z" />
+
+              <text x="250" y="58" text-anchor="middle" font-size="14" fill="white">
+
+                Cloud
+
+              </text>
+
+              <!-- line -->
+              <line class="proto-line" x1="96" y1="85" x2="194" y2="85" />
+
+              <!-- continuous packets -->
+
+              <circle class="http-msg h1" r="4"></circle>
+              <circle class="http-msg h2" r="4"></circle>
+              <circle class="http-msg h3" r="4"></circle>
+
+            </svg>
+
+            <ul class="feat" style="--dot:var(--blue)">
+              <li>Client repeatedly requests data.</li>
+              <li>Communication occurs even when values do not change.</li>
+              <li><b>Higher bandwidth and power consumption.</b></li>
+            </ul>
+
+          </div>
+
+          <!-- ===================================================== -->
+          <!-- MQTT -->
+          <!-- ===================================================== -->
+
+          <div class="card edge-teal gstep">
+
+            <h3 class="accent">
+              <i class="fa-solid fa-broadcast-tower"></i>
+              MQTT
+            </h3>
+
+            <p class="sub">
+              Publish / Subscribe
+            </p>
+
+            <svg class="proto-stage" viewBox="0 0 320 170">
+
+              <circle class="proto-node" cx="70" cy="85" r="26" />
+
+              <text x="70" y="92" text-anchor="middle" font-size="22">
+
+                🍓
+
+              </text>
+
+              <path class="proto-cloud" d="
+M215 62
+C205 62 197 54 197 45
+C197 35 205 27 215 27
+C219 15 230 8 243 8
+C256 8 268 16 272 27
+C283 27 292 36 292 47
+C302 50 309 58 309 69
+C309 82 299 92 287 92
+L214 92
+C202 92 192 83 192 71
+C192 67 194 64 197 62
+Z" />
+
+              <text x="250" y="58" text-anchor="middle" font-size="14" fill="white">
+
+                Cloud
+
+              </text>
+
+              <line class="proto-line" x1="96" y1="85" x2="194" y2="85" />
+
+              <!-- only one packet every few seconds -->
+
+              <circle class="mqtt-msg" r="4"></circle>
+
+            </svg>
+
+            <ul class="feat" style="--dot:var(--teal)">
+              <li>Client subscribes to a topic.</li>
+              <li>Updates are sent only when values change.</li>
+              <li><b>Low bandwidth and lower power usage.</b></li>
+            </ul>
+
+          </div>
+
+        </div>
+
+        <!-- ===================================================== -->
+
+        <div class="takeaway gstep" style="margin-top:1.3rem">
+
+          <span class="lbl">
+
+            Conclusion
+
+          </span>
+
+          <p>
+
+            <strong class="blue">HTTPS</strong>
+            continuously polls the server, increasing communication overhead,
+            whereas
+            <strong class="accent">MQTT</strong>
+            uses an event-driven publish/subscribe model that sends data only when needed,
+            making it much more suitable for IoT applications.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==========================================================
+ IoT Task ─ Result 1
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">IoT Results</span>
+
+        <div class="badge-row" style="margin-bottom:.8rem">
+          <span class="badge fill">Result 1 / 2</span>
+          <span class="badge">Cloud Database</span>
+        </div>
+
+        <h2>
+          Sensor Data Successfully Uploaded
+        </h2>
+
+        <p class="lead">
+          Distance measurements acquired by the Raspberry Pi were continuously transmitted to the cloud and stored
+          inside the database.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task5_Distance.mp4" type="video/mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Result</span>
+
+          <p>
+
+            The Raspberry Pi successfully published every sensor reading to the cloud, allowing measurements to be
+            permanently stored for future analysis.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================================
+ IoT Task ─ Result 2
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">IoT Results</span>
+
+        <div class="badge-row" style="margin-bottom:.8rem">
+          <span class="badge fill">Result 2 / 2</span>
+          <span class="badge">Grafana Dashboard</span>
+        </div>
+
+        <h2>
+          Real-Time Visualization with Grafana
+        </h2>
+
+        <p class="lead">
+          Stored sensor values were visualized through Grafana, providing a live dashboard that automatically updates as
+          new measurements arrive.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task11_Grafana.mp4" type="video/mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Result</span>
+
+          <p>
+
+            The dashboard displayed real-time distance measurements, enabling remote monitoring of the sensor from any
+            connected device.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================================
+ RTOS Task 1 ─ Description
+=========================================================== -->
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">Real-Time Operating System (RTOS)</span>
+
+        <h2>
+          Task Scheduling using RTOS
+          <span class="step-hint">click to build ▸</span>
+        </h2>
+
+        <p class="lead">
+          The application was divided into independent concurrent tasks managed by the RTOS kernel while supporting
+          Bluetooth and Zigbee wireless communication.
+        </p>
+
+        <div class="cols tight click-advance" style="align-items:center;margin-top:.6rem">
+
+          <!-- ================================================= -->
+          <!-- LEFT -->
+          <!-- ================================================= -->
+
+          <div>
+
+            <div class="rtos-loop">
+
+              <svg viewBox="0 0 430 430">
+
+                <!-- scheduler ring -->
+
+                <circle class="scheduler-ring" cx="215" cy="215" r="145" />
+
+                <!-- glowing scheduler -->
+
+                <circle class="scheduler-comet" cx="215" cy="215" r="145" />
+
+                <!-- kernel connections -->
+
+                <line class="task-link" x1="215" y1="215" x2="215" y2="70" />
+                <line class="task-link" x1="215" y1="215" x2="360" y2="215" />
+                <line class="task-link" x1="215" y1="215" x2="215" y2="360" />
+                <line class="task-link" x1="215" y1="215" x2="70" y2="215" />
+
+              </svg>
+
+              <!-- Kernel -->
+
+              <div class="kernel gstep">
+
+                <i class="fa-solid fa-microchip"></i>
+
+                <h3>RTOS<br>Kernel</h3>
+
+              </div>
+
+              <!-- Task 1 -->
+
+              <div class="task-node top gstep">
+
+                <i class="fa-solid fa-satellite-dish"></i>
+
+                <span>Sensor Task</span>
+
+              </div>
+
+              <!-- Task 2 -->
+
+              <div class="task-node right gstep">
+
+                <i class="fa-brands fa-bluetooth-b"></i>
+
+                <span>Bluetooth</span>
+
+              </div>
+
+              <!-- Task 3 -->
+
+              <div class="task-node bottom gstep">
+
+                <i class="fa-solid fa-memory"></i>
+
+                <span>Processing</span>
+
+              </div>
+
+              <!-- Task 4 -->
+
+              <div class="task-node left gstep">
+
+                <i class="fa-solid fa-network-wired"></i>
+
+                <span>Zigbee</span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ================================================= -->
+          <!-- RIGHT -->
+          <!-- ================================================= -->
+
+          <div>
+
+            <ul class="b">
+
+              <li class="gstep">
+                <strong class="green">Task Scheduling</strong><br>
+                The RTOS kernel periodically switches between multiple tasks.
+              </li>
+
+              <li class="gstep">
+                <strong class="accent">Concurrent Execution</strong><br>
+                Each application function executes independently while sharing processor time.
+              </li>
+
+              <li class="gstep">
+                <strong class="amber">Wireless Communication</strong><br>
+                Dedicated tasks handle Bluetooth and Zigbee communication without blocking other tasks.
+              </li>
+
+              <li class="gstep">
+                <strong class="violet">Real-Time Performance</strong><br>
+                The scheduler guarantees responsive and deterministic execution.
+              </li>
+
+            </ul>
+
+            <div class="takeaway gstep">
+
+              <span class="lbl">
+
+                Task Objective
+
+              </span>
+
+              <p>
+
+                Implement a multitasking embedded application where independent software modules execute concurrently
+                under the RTOS scheduler.
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">RTOS Results</span>
+
+        <div class="badge-row">
+          <span class="badge fill">Result 1 / 4</span>
+          <span class="badge">LED Task</span>
+        </div>
+
+        <h2>Periodic LED Control using RTOS</h2>
+
+        <p class="lead">
+          A dedicated RTOS task periodically toggles the LED while allowing the scheduler to execute other tasks
+          concurrently.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task12_LED_RTOS.mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Observation</span>
+
+          <p>
+            Task delays are implemented using the RTOS scheduler instead of software busy waiting, improving processor
+            utilization.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">RTOS Results</span>
+
+        <div class="badge-row">
+          <span class="badge fill">Result 2 / 4</span>
+          <span class="badge">Bluetooth Communication</span>
+        </div>
+
+        <h2>Wireless Communication using Bluetooth</h2>
+
+        <p class="lead">
+          A dedicated communication task continuously manages Bluetooth transmission without blocking the execution of
+          other application tasks.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task13_BLE.mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Observation</span>
+
+          <p>
+            Separating Bluetooth into an independent task keeps the system responsive even during communication.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">RTOS Results</span>
+
+        <div class="badge-row">
+          <span class="badge fill">Result 3 / 4</span>
+          <span class="badge">Zigbee Communication</span>
+        </div>
+
+        <h2>Wireless Networking using Zigbee</h2>
+
+        <p class="lead">
+          The RTOS schedules Zigbee communication independently, enabling reliable wireless data exchange alongside the
+          remaining application tasks.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task14_Zigbee.mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Observation</span>
+
+          <p>
+            The scheduler ensures reliable communication while maintaining deterministic execution of the remaining
+            tasks.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="slide">
+
+      <div class="slide-inner">
+
+        <span class="kicker">RTOS Results</span>
+
+        <div class="badge-row">
+          <span class="badge fill">Result 4 / 4</span>
+          <span class="badge">System Integration</span>
+        </div>
+
+        <h2>Integration between the RTOS Controller and Raspberry Pi</h2>
+
+        <p class="lead">
+          The final system successfully connected the RTOS-based microcontroller with the Raspberry Pi, enabling
+          reliable communication between the embedded controller and the Linux-based edge computer.
+        </p>
+
+        <div class="demo-video">
+
+          <video controls autoplay playsinline>
+
+            <source src="../Videos/Task15_UART.mp4">
+
+          </video>
+
+        </div>
+
+        <div class="takeaway">
+
+          <span class="lbl">Final Outcome</span>
+
+          <p>
+            The integration demonstrates a complete embedded architecture where the RTOS controller performs real-time
+            operations while the Raspberry Pi handles higher-level processing and IoT connectivity.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- 29 ─ CLOSING -->
+    <section class="slide title-slide">
+      <div class="slide-inner">
+        <span class="kicker">Thank you</span>
+        <h1>From <span class="coral">hours</span> of waiting<br>to <span class="accent">learned</span> partitions.</h1>
+        <p class="lead">Machine learning can do what static heuristics cannot — adapt, generalize, and optimize for what
+          actually matters: <strong>real simulation speed.</strong></p>
+        <div class="stats">
+          <div class="stat">
+            <div class="v accent">2</div>
+            <div class="k">complementary learning frameworks (GAP + RLSF)</div>
+          </div>
+          <div class="stat">
+            <div class="v violet">~2,000</div>
+            <div class="k">industrial RTL designs trained on</div>
+          </div>
+          <div class="stat">
+            <div class="v green">2.3×</div>
+            <div class="k">peak speedup over sequential simulation</div>
+          </div>
+        </div>
+        <p class="fnote" style="margin-top:2rem">Cairo University · Faculty of Engineering (EECE) &nbsp;·&nbsp;
+          Sponsored by Siemens Digital Industries Software &nbsp;·&nbsp; June 2026</p>
+      </div>
+    </section>
+
+    <!-- 30 ─ THANK YOU / CALLIGRAPHY -->
+    <section class="slide thanks">
+      <!-- floating particles -->
+      <div class="ty-particles" aria-hidden="true">
+        <span style="--x:8%;--d:9s;--s:6px;--delay:0s"></span>
+        <span style="--x:18%;--d:12s;--s:4px;--delay:1.5s"></span>
+        <span style="--x:28%;--d:10s;--s:8px;--delay:3s"></span>
+        <span style="--x:40%;--d:14s;--s:5px;--delay:.8s"></span>
+        <span style="--x:52%;--d:11s;--s:7px;--delay:2.2s"></span>
+        <span style="--x:63%;--d:13s;--s:4px;--delay:4s"></span>
+        <span style="--x:74%;--d:9.5s;--s:6px;--delay:1s"></span>
+        <span style="--x:84%;--d:12.5s;--s:9px;--delay:3.5s"></span>
+        <span style="--x:92%;--d:10.5s;--s:5px;--delay:5s"></span>
+      </div>
+      <div class="slide-inner">
+        <div class="calli">
+          <span class="ring r1" aria-hidden="true"></span>
+          <span class="ring r2" aria-hidden="true"></span>
+          <span class="calli-img"><img src="Figures/GOOAYm5a0AAoiMh.png"
+              alt="وآخر دعواهم أن الحمد لله رب العالمين"></span>
+        </div>
+        <div class="ty">Thank you!</div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="dots" id="dots"></div>
+  <div class="counter"><span class="pagecite" id="pagecite"></span><b id="cur">1</b> / <span id="total">29</span></div>
+  <div class="nav-hint"><kbd>←</kbd> <kbd>→</kbd> navigate &nbsp;·&nbsp; <kbd>F</kbd> fullscreen</div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const total = slides.length;
+    let idx = 0;
+    const progress = document.getElementById('progress');
+    const cur = document.getElementById('cur');
+    const pagecite = document.getElementById('pagecite');
+    const dotsWrap = document.getElementById('dots');
+    document.getElementById('total').textContent = total;
+
+    // build dots
+    slides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' on' : '');
+      d.addEventListener('click', () => go(i));
+      dotsWrap.appendChild(d);
+    });
+    const dots = Array.from(dotsWrap.children);
+
+    function render() {
+      slides.forEach((s, i) => {
+        s.classList.toggle('active', i === idx);
+        s.classList.toggle('prev', i < idx);
+      });
+      dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+      progress.style.width = ((idx) / (total - 1) * 100) + '%';
+      cur.textContent = idx + 1;
+      // per-slide thesis page citation (from data-pages attribute)
+      const pg = slides[idx].getAttribute('data-pages');
+      pagecite.innerHTML = pg ? ('<b>Thesis pp.</b> ' + pg) : '';
+      // re-trigger bar fills
+      const active = slides[idx];
+      active.querySelectorAll('.fill').forEach(f => {
+        const w = f.style.width; f.style.width = '0'; requestAnimationFrame(() => { setTimeout(() => f.style.width = w, 40); });
+      });
+      // reset click-revealed fragments on the active slide
+      active.querySelectorAll('.gstep').forEach(g => g.classList.remove('show'));
+      active.querySelectorAll('.step-hint, #gnnHint').forEach(h => h.style.opacity = '1');
+      fitSlide(active);
+    }
+    // auto-scale a slide's content down if it's taller/wider than the available area
+    function fitSlide(s) {
+      const inner = s.querySelector('.slide-inner');
+      if (!inner) return;
+      inner.style.transform = 'none';
+      const cs = getComputedStyle(s);
+      const availH = s.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const availW = s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const need = inner.scrollHeight, needW = inner.scrollWidth;
+      const scale = Math.min(1, availH / need, availW / needW);
+      if (scale < 0.999) inner.style.transform = 'scale(' + scale.toFixed(4) + ')';
+    }
+    function go(n) { idx = Math.max(0, Math.min(total - 1, n)); render(); }
+    // re-fit on resize (and after fonts/images settle)
+    let _rt; window.addEventListener('resize', () => { clearTimeout(_rt); _rt = setTimeout(() => fitSlide(slides[idx]), 120); });
+    window.addEventListener('load', () => fitSlide(slides[idx]));
+
+    // fragment-aware navigation: on slides with .gstep groups, a "next" first
+    // reveals the next fragment; only once all are shown does it change slide.
+    function gsteps() { return Array.from(slides[idx].querySelectorAll('.gstep')); }
+    function syncHint(shown, totalFrags) {
+      slides[idx].querySelectorAll('.step-hint, #gnnHint').forEach(h => {
+        h.style.opacity = shown >= totalFrags ? '0' : '1';
+      });
+    }
+    function next() {
+      const f = gsteps();
+      if (f.length) {
+        const shown = f.filter(g => g.classList.contains('show')).length;
+        if (shown < f.length) { f[shown].classList.add('show'); syncHint(shown + 1, f.length); return; }
+      }
+      go(idx + 1);
+    }
+    function prev() {
+      const f = gsteps();
+      if (f.length) {
+        const shownEls = f.filter(g => g.classList.contains('show'));
+        if (shownEls.length) { shownEls[shownEls.length - 1].classList.remove('show'); syncHint(shownEls.length - 1, f.length); return; }
+      }
+      go(idx - 1);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { go(0); }
+      else if (e.key === 'End') { go(total - 1); }
+      else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+      }
+    });
+    // touch / swipe
+    let tx = 0;
+    document.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - tx;
+      if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    }, { passive: true });
+    // click right/left thirds to navigate
+    document.getElementById('deck').addEventListener('click', e => {
+      if (e.target.closest('.dot')) return;
+      const x = e.clientX / window.innerWidth;
+      if (x > 0.65) next(); else if (x < 0.2) prev();
+    });
+
+    // theme toggle (dark default)
+    const themeBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+    function applyTheme(light) {
+      document.body.classList.toggle('light', light);
+      themeIcon.textContent = light ? '🌙' : '☀️';
+      themeLabel.textContent = light ? 'Dark' : 'Light';
+    }
+    themeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      applyTheme(!document.body.classList.contains('light'));
+    });
+
+    // clicking the diagram / cards reveals the next step (then advances the slide)
+    document.querySelectorAll('.gnn-box, .click-advance').forEach(box => {
+      box.addEventListener('click', e => { e.stopPropagation(); next(); });
+    });
+
+    render();
+
+    /*=========================================================
+        Raspberry Pi Methodology Animation
+=========================================================*/
+
+    const pulse = document.getElementById("pulse");
+
+    const delayCard = document.getElementById("delayCard");
+    const timerCard = document.getElementById("timerCard");
+    const interruptCard = document.getElementById("interruptCard");
+
+    const delayVideo = document.getElementById("delayVideo");
+    const timerVideo = document.getElementById("timerVideo");
+    const interruptVideo = document.getElementById("interruptVideo");
+
+    const rootCard = document.querySelector(".root-card");
+
+    const svg = document.querySelector(".tree-svg");
+
+    let currentMethod = -1;
+
+
+
+    /************************************************
+                Helpers
+    ************************************************/
+
+    function dimOthers(active) {
+
+      [delayCard, timerCard, interruptCard].forEach(card => {
+
+        if (card === active) {
+
+          card.classList.remove("dim");
+          card.classList.add("active");
+
+        } else {
+
+          card.classList.remove("active");
+          card.classList.add("dim");
+
+        }
+
+      });
+
+    }
+
+    function restoreCards() {
+
+      [delayCard, timerCard, interruptCard].forEach(card => {
+
+        card.classList.remove("active");
+        card.classList.remove("dim");
+
+      });
+
+    }
+
+    function stopVideos() {
+
+      [delayVideo, timerVideo, interruptVideo].forEach(v => {
+
+        v.pause();
+
+        v.currentTime = 0;
+
+      });
+
+    }
+
+
+
+    function zoomRoot() {
+
+      rootCard.classList.add("active");
+
+    }
+
+    function unzoomRoot() {
+
+      rootCard.classList.remove("active");
+
+    }
+
+
+
+    /************************************************
+                Pulse Animation
+    ************************************************/
+
+    function movePulse(pathID) {
+
+      const path = document.getElementById(pathID);
+
+      const length = path.getTotalLength();
+
+      pulse.style.opacity = 1;
+
+      let start = null;
+
+      function animate(timestamp) {
+
+        if (!start) start = timestamp;
+
+        let progress = (timestamp - start) / 1200;
+
+        if (progress > 1) progress = 1;
+
+        const point = path.getPointAtLength(progress * length);
+
+        pulse.setAttribute("cx", point.x);
+
+        pulse.setAttribute("cy", point.y);
+
+        if (progress < 1) {
+
+          requestAnimationFrame(animate);
+
+        }
+
+      }
+
+      requestAnimationFrame(animate);
+
+    }
+
+
+
+    /************************************************
+            Play One Method
+    ************************************************/
+
+    function activateMethod(card, video, path) {
+
+      stopVideos();
+
+      restoreCards();
+
+      movePulse(path);
+
+      dimOthers(card);
+
+      video.play();
+
+    }
+
+
+
+    /************************************************
+                Sequence
+    ************************************************/
+
+    function playDelay() {
+
+      activateMethod(
+
+        delayCard,
+
+        delayVideo,
+
+        "delayPath"
+
+      );
+
+    }
+
+
+
+    function playTimer() {
+
+      activateMethod(
+
+        timerCard,
+
+        timerVideo,
+
+        "timerPath"
+
+      );
+
+    }
+
+
+
+    function playInterrupt() {
+
+      activateMethod(
+
+        interruptCard,
+
+        interruptVideo,
+
+        "interruptPath"
+
+      );
+
+    }
+
+
+
+    /************************************************
+            Restore after video ends
+    ************************************************/
+
+    delayVideo.onended = () => {
+
+      restoreCards();
+
+      pulse.style.opacity = 0;
+
+    };
+
+    timerVideo.onended = () => {
+
+      restoreCards();
+
+      pulse.style.opacity = 0;
+
+    };
+
+    interruptVideo.onended = () => {
+
+      restoreCards();
+
+      pulse.style.opacity = 0;
+
+    };
+
+
+
+    /************************************************
+            Demo Controller
+    ************************************************/
+
+    function methodologyNext() {
+
+      currentMethod++;
+
+      switch (currentMethod) {
+
+        case 0:
+
+          zoomRoot();
+
+          break;
+
+        case 1:
+
+          unzoomRoot();
+
+          playDelay();
+
+          break;
+
+        case 2:
+
+          playTimer();
+
+          break;
+
+        case 3:
+
+          playInterrupt();
+
+          break;
+
+        default:
+
+          restoreCards();
+
+          stopVideos();
+
+          pulse.style.opacity = 0;
+
+          currentMethod = -1;
+
+      }
+
+    }
+
+  </script>
+
+</body>
+
+</html>
